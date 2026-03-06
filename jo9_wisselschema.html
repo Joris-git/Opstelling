@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="JO9-2" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>JO9-2 Wisselschema</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+    #root { min-height: 100vh; }
+    /* iOS safe area */
+    .app-header { padding-top: max(18px, env(safe-area-inset-top)); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel for JSX transpilation -->
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <!-- SheetJS for Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useCallback, useRef } = React;
+    const XLSX = window.XLSX;
+
+
+const ALL_PLAYERS = ["Noud", "Bastiaan", "James", "Giulio", "Bram", "Coen", "Izzy", "Abel"];
+const NAME_MAP = {
+  bas: "Bastiaan", bastiaan: "Bastiaan",
+  jms: "James", james: "James",
+  noud: "Noud", giulio: "Giulio", bram: "Bram",
+  coen: "Coen", izzy: "Izzy", abel: "Abel", kees: "Kees",
+};
+
+const POS_COLORS = {
+  keeper:       { bg: "#f59e0b", text: "#1c1917" },
+  verdediger:   { bg: "#3b82f6", text: "#fff" },
+  middenvelder: { bg: "#10b981", text: "#fff" },
+  spits:        { bg: "#ef4444", text: "#fff" },
+  wissel:       { bg: "#374151", text: "#9ca3af" },
+};
+const POS_ICONS = {
+  keeper: "🧤", verdediger: "🛡️", middenvelder: "⚙️", spits: "⚡", wissel: "🪑",
+};
+
+function normalizeName(raw) {
+  if (!raw) return "";
+  const key = String(raw).trim().toLowerCase();
+  return NAME_MAP[key] || (String(raw).trim().charAt(0).toUpperCase() + String(raw).trim().slice(1));
+}
+
+// -- Excel parsers -------------------------------------------------------------
+
+function parseHistory(workbook) {
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+  const firstRow = raw[0] || [];
+  const isNew = firstRow.some(function(c) { return typeof c === "string" && c.toLowerCase().includes("speler"); });
+  return isNew ? parseNewFormat(raw) : parseOriginalFormat(raw);
+}
+
+function parseNewFormat(rows) {
+  const header = rows[0].map(function(c) { return String(c || "").toLowerCase().trim(); });
+  const matchCol  = header.indexOf("wedstrijd");
+  const datumCol  = header.indexOf("datum");
+  const spelerCol = header.indexOf("speler");
+  const p1Col     = header.findIndex(function(h) { return h === "p1" || h === "periode1"; });
+  const p2Col     = header.findIndex(function(h) { return h === "p2" || h === "periode2"; });
+  const p3Col     = header.findIndex(function(h) { return h === "p3" || h === "periode3"; });
+  const p4Col     = header.findIndex(function(h) { return h === "p4" || h === "periode4"; });
+  const matchMap = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const matchId = String(r[matchCol] || "").trim();
+    const player  = normalizeName(r[spelerCol]);
+    if (!matchId || !player) continue;
+    if (!matchMap[matchId]) matchMap[matchId] = { datum: r[datumCol] || "", players: {} };
+    matchMap[matchId].players[player] = {
+      p1: String(r[p1Col] || "").toLowerCase().trim(),
+      p2: String(r[p2Col] || "").toLowerCase().trim(),
+      p3: String(r[p3Col] || "").toLowerCase().trim(),
+      p4: String(r[p4Col] || "").toLowerCase().trim(),
+    };
+  }
+  return Object.entries(matchMap)
+    .sort(function(a, b) { return a[0].localeCompare(b[0], undefined, { numeric: true }); })
+    .map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); });
+}
+
+function parseOriginalFormat(raw) {
+  const matchMap = {};
+  let matchNum = 0;
+  let datum = "";
+  let i = 0;
+  const COL_POS = { 1: "keeper", 2: "verdediger", 3: "verdediger", 4: "middenvelder", 5: "spits", 6: "spits", 7: "wissel", 8: "wissel" };
+  while (i < raw.length) {
+    const row = raw[i];
+    const cell0 = String(row[0] || "").trim().toLowerCase();
+    if (cell0.includes("wedstrijd")) {
+      matchNum++;
+      const rawDate = row[1];
+      if (rawDate) {
+        try {
+          if (typeof rawDate === "number") {
+            const d = XLSX.SSF.parse_date_code(rawDate);
+            datum = String(d.d).padStart(2,"0") + "-" + String(d.m).padStart(2,"0") + "-" + d.y;
+          } else {
+            datum = String(rawDate).trim();
+          }
+        } catch(e) { datum = String(rawDate); }
+      }
+      const key = String(matchNum);
+      matchMap[key] = { datum: datum, players: {} };
+      i += 2;
+      for (let p = 1; p <= 4; p++) {
+        if (i >= raw.length) break;
+        const prow = raw[i];
+        if (String(prow[0] || "").trim().toLowerCase().includes("wedstrijd")) break;
+        Object.entries(COL_POS).forEach(function(entry) {
+          const colIdx = parseInt(entry[0]);
+          const pos = entry[1];
+          const name = normalizeName(prow[colIdx]);
+          if (!name || name.toLowerCase() === "nan") return;
+          if (!matchMap[key].players[name]) matchMap[key].players[name] = { p1: "", p2: "", p3: "", p4: "" };
+          if (!matchMap[key].players[name]["p" + p]) matchMap[key].players[name]["p" + p] = pos;
+        });
+        i++;
+      }
+    } else {
+      i++;
+    }
+  }
+  return Object.entries(matchMap)
+    .sort(function(a, b) { return a[0].localeCompare(b[0], undefined, { numeric: true }); })
+    .map(function(entry) { return Object.assign({ id: entry[0] }, entry[1]); });
+}
+
+// -- Statistics ----------------------------------------------------------------
+
+function buildStats(history, players) {
+  const stats = {};
+  players.forEach(function(p) {
+    stats[p] = { wissel: 0, keeper: 0, verdediger: 0, middenvelder: 0, spits: 0, lastWasWissel: false };
+  });
+  history.forEach(function(match) {
+    Object.entries(match.players).forEach(function(entry) {
+      const player = entry[0];
+      const periods = entry[1];
+      if (!stats[player]) return;
+      [periods.p1, periods.p2, periods.p3, periods.p4].forEach(function(pos) {
+        if (pos && stats[player][pos] !== undefined) stats[player][pos]++;
+      });
+    });
+  });
+  if (history.length > 0) {
+    const last = history[history.length - 1];
+    Object.entries(last.players).forEach(function(entry) {
+      const player = entry[0];
+      const periods = entry[1];
+      if (!stats[player]) return;
+      const all = [periods.p1, periods.p2, periods.p3, periods.p4];
+      if (all.every(function(p) { return p === "wissel" || p === ""; })) stats[player].lastWasWissel = true;
+    });
+  }
+  return stats;
+}
+
+// -- Position assignment -------------------------------------------------------
+
+function assignFair(players, positions, stats, matchPos) {
+  const result = {};
+  const availPos = positions.slice();
+  const order = players.slice().sort(function() { return Math.random() - 0.5; });
+  order.forEach(function(player) {
+    const sorted = availPos.slice().sort(function(a, b) {
+      const aT = ((stats[player] && stats[player][a]) || 0) + ((matchPos[player] && matchPos[player][a]) || 0) * 2;
+      const bT = ((stats[player] && stats[player][b]) || 0) + ((matchPos[player] && matchPos[player][b]) || 0) * 2;
+      return aT - bT;
+    });
+    const chosen = sorted[0];
+    result[player] = chosen;
+    availPos.splice(availPos.indexOf(chosen), 1);
+  });
+  return result;
+}
+
+function assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub) {
+  const assignments = {};
+  assignments[keeper] = "keeper";
+  fieldPlayers.forEach(function(player) {
+    if (player === keeper) return;
+    const prev = prevAssignments[player];
+    if (prev && prev !== "keeper" && prev !== "wissel") assignments[player] = prev;
+  });
+  if (incomingSub && outgoingSub) {
+    const inherited = prevAssignments[outgoingSub];
+    if (inherited && inherited !== "keeper" && inherited !== "wissel") {
+      if (incomingSub === "Bastiaan" && inherited !== "verdediger") {
+        assignments["Bastiaan"] = "verdediger";
+        const swapTarget = fieldPlayers.find(function(p) {
+          return p !== keeper && p !== "Bastiaan" && assignments[p] === "verdediger";
+        });
+        if (swapTarget) assignments[swapTarget] = inherited;
+      } else {
+        assignments[incomingSub] = inherited;
+      }
+    }
+  }
+  if (fieldPlayers.includes("Bastiaan") && keeper !== "Bastiaan" && assignments["Bastiaan"] !== "verdediger") {
+    const swap = fieldPlayers.find(function(p) { return p !== keeper && p !== "Bastiaan" && assignments[p] === "verdediger"; });
+    if (swap) assignments[swap] = assignments["Bastiaan"];
+    assignments["Bastiaan"] = "verdediger";
+  }
+  const allPos = ["verdediger", "verdediger", "middenvelder", "spits", "spits"];
+  const usedPos = Object.values(assignments).filter(function(p) { return p !== "keeper"; });
+  const freePos = allPos.slice();
+  usedPos.forEach(function(u) { const idx = freePos.indexOf(u); if (idx !== -1) freePos.splice(idx, 1); });
+  fieldPlayers.forEach(function(player) {
+    if (player === keeper || assignments[player]) return;
+    if (freePos.length) assignments[player] = freePos.shift();
+  });
+  return assignments;
+}
+
+function assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos) {
+  const prevNonBastiaanDefenders = fieldPlayers.filter(function(p) {
+    return p !== keeper && p !== "Bastiaan" && prevAssignments[p] === "verdediger";
+  });
+  const toAssign = fieldPlayers.filter(function(p) { return p !== keeper; });
+  const remainingPos = ["verdediger", "verdediger", "middenvelder", "spits", "spits"];
+  const assignments = {};
+  assignments[keeper] = "keeper";
+  if (toAssign.includes("Bastiaan")) {
+    assignments["Bastiaan"] = "verdediger";
+    remainingPos.splice(remainingPos.indexOf("verdediger"), 1);
+    toAssign.splice(toAssign.indexOf("Bastiaan"), 1);
+  }
+  const order = toAssign.slice().sort(function() { return Math.random() - 0.5; });
+  const availPos = remainingPos.slice();
+  order.forEach(function(player) {
+    const forbidden = prevNonBastiaanDefenders.includes(player) ? ["verdediger"] : [];
+    const sorted = availPos.slice().sort(function(a, b) {
+      if (forbidden.includes(a) && !forbidden.includes(b)) return 1;
+      if (!forbidden.includes(a) && forbidden.includes(b)) return -1;
+      const aT = ((stats[player] && stats[player][a]) || 0) + ((matchPos[player] && matchPos[player][a]) || 0) * 2;
+      const bT = ((stats[player] && stats[player][b]) || 0) + ((matchPos[player] && matchPos[player][b]) || 0) * 2;
+      return aT - bT;
+    });
+    const chosen = sorted[0];
+    assignments[player] = chosen;
+    availPos.splice(availPos.indexOf(chosen), 1);
+  });
+  return assignments;
+}
+
+// -- Schema generator ----------------------------------------------------------
+
+function generateSchema(aanwezig, keepers, history) {
+  const subCount = Math.max(0, aanwezig.length - 6);
+  const stats = buildStats(history, aanwezig);
+  const matchPos = {};
+  aanwezig.forEach(function(p) { matchPos[p] = { verdediger: 0, middenvelder: 0, spits: 0, wissel: 0 }; });
+  const schema = [];
+  let lastSubs = [];
+  let prevAssignments = {};
+
+  for (let period = 0; period < 4; period++) {
+    const keeper = period < 2 ? keepers[0] : keepers[1];
+    let periodSubs = [];
+    let incomingSub = null;
+    let outgoingSub = null;
+
+    if (subCount > 0) {
+      const candidates = aanwezig.filter(function(p) {
+        return !lastSubs.includes(p) && p !== keepers[0] && p !== keepers[1];
+      });
+      candidates.sort(function(a, b) {
+        const aS = ((stats[a] && stats[a].lastWasWissel) ? -100 : 0) + ((matchPos[a] && matchPos[a].wissel) || 0) * 5 + ((stats[a] && stats[a].wissel) || 0);
+        const bS = ((stats[b] && stats[b].lastWasWissel) ? -100 : 0) + ((matchPos[b] && matchPos[b].wissel) || 0) * 5 + ((stats[b] && stats[b].wissel) || 0);
+        return aS - bS + (Math.random() - 0.5) * 0.4;
+      });
+      periodSubs = candidates.slice(0, subCount);
+      outgoingSub = lastSubs[0] || null;
+      incomingSub = periodSubs[0] || null;
+      periodSubs.forEach(function(s) { matchPos[s].wissel++; });
+      lastSubs = periodSubs;
+    }
+
+    const fieldPlayers = aanwezig.filter(function(p) { return !periodSubs.includes(p); });
+    const assignments = {};
+
+    if (period === 0) {
+      const toAssign = fieldPlayers.filter(function(p) { return p !== keeper; });
+      const remainingPos = ["verdediger", "verdediger", "middenvelder", "spits", "spits"];
+      assignments[keeper] = "keeper";
+      if (toAssign.includes("Bastiaan")) {
+        assignments["Bastiaan"] = "verdediger";
+        remainingPos.splice(remainingPos.indexOf("verdediger"), 1);
+        toAssign.splice(toAssign.indexOf("Bastiaan"), 1);
+        matchPos["Bastiaan"].verdediger++;
+      }
+      const assigned = assignFair(toAssign, remainingPos, stats, matchPos);
+      Object.entries(assigned).forEach(function(e) { assignments[e[0]] = e[1]; matchPos[e[0]][e[1]]++; });
+
+    } else if (period === 1) {
+      const stable = assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub);
+      Object.entries(stable).forEach(function(e) {
+        assignments[e[0]] = e[1];
+        if (e[1] !== "keeper") matchPos[e[0]][e[1]] = (matchPos[e[0]][e[1]] || 0) + 1;
+      });
+
+    } else if (period === 2) {
+      const shuffled = assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos);
+      Object.entries(shuffled).forEach(function(e) {
+        assignments[e[0]] = e[1];
+        if (e[1] !== "keeper") matchPos[e[0]][e[1]] = (matchPos[e[0]][e[1]] || 0) + 1;
+      });
+
+    } else {
+      const stable = assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub);
+      Object.entries(stable).forEach(function(e) {
+        assignments[e[0]] = e[1];
+        if (e[1] !== "keeper") matchPos[e[0]][e[1]] = (matchPos[e[0]][e[1]] || 0) + 1;
+      });
+    }
+
+    periodSubs.forEach(function(s) { assignments[s] = "wissel"; });
+    prevAssignments = Object.assign({}, assignments);
+    schema.push({ period: period + 1, keeper: keeper, subs: periodSubs, assignments: assignments });
+  }
+  return schema;
+}
+
+function getSummary(schema, aanwezig) {
+  const counts = {};
+  aanwezig.forEach(function(p) { counts[p] = { keeper: 0, verdediger: 0, middenvelder: 0, spits: 0, wissel: 0 }; });
+  schema.forEach(function(period) {
+    aanwezig.forEach(function(p) {
+      const pos = period.assignments[p];
+      if (pos && counts[p]) counts[p][pos]++;
+    });
+  });
+  return counts;
+}
+
+// -- Export to image (Canvas-based) -------------------------------------------
+
+function exportSchemaAsImage(schema, aanwezig, matchDate, keepers) {
+  const canvas = document.createElement("canvas");
+  const W = 680;
+  const rowH = 38;
+  const headerH = 60;
+  const periodH = 6 * rowH + 60; // keeper+2def+mid+2spits+header
+  const subRows = Math.max(0, aanwezig.length - 6);
+  const periodHWithSubs = periodH + subRows * rowH;
+  const totalH = headerH + 4 * periodHWithSubs + 40;
+  canvas.width = W * 2;
+  canvas.height = totalH * 2;
+  canvas.style.width = W + "px";
+  canvas.style.height = totalH + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.scale(2, 2);
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, W, totalH);
+  grad.addColorStop(0, "#0f172a");
+  grad.addColorStop(0.5, "#1e3a5f");
+  grad.addColorStop(1, "#0f172a");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, totalH);
+
+  // Header bar
+  const hgrad = ctx.createLinearGradient(0, 0, W, 0);
+  hgrad.addColorStop(0, "#1e40af");
+  hgrad.addColorStop(1, "#2563eb");
+  ctx.fillStyle = hgrad;
+  ctx.fillRect(0, 0, W, headerH);
+  ctx.fillStyle = "#f59e0b";
+  ctx.fillRect(0, headerH - 3, W, 3);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 20px sans-serif";
+  ctx.fillText("⚽ JO9-2 Wisselschema", 20, 28);
+  ctx.fillStyle = "#93c5fd";
+  ctx.font = "13px sans-serif";
+  const dateStr = matchDate
+    ? new Date(matchDate + "T12:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    : "";
+  ctx.fillText(dateStr || (aanwezig.length + " spelers aanwezig"), 20, 50);
+
+  const posColorsBg = { keeper: "#f59e0b", verdediger: "#3b82f6", middenvelder: "#10b981", spits: "#ef4444", wissel: "#374151" };
+  const posColorsText = { keeper: "#1c1917", verdediger: "#fff", middenvelder: "#fff", spits: "#fff", wissel: "#9ca3af" };
+  const posLabels = { keeper: "🧤 KEEPER", verdediger: "🛡 VERD.", middenvelder: "⚙ MIDDEN", spits: "⚡ SPITS", wissel: "🪑 WISSEL" };
+
+  function drawPeriod(p, yStart) {
+    const pRowH = rowH;
+    // Period header
+    ctx.fillStyle = "rgba(255,255,255,0.06)";
+    ctx.beginPath();
+    ctx.roundRect(12, yStart, W - 24, pRowH, 8);
+    ctx.fill();
+    ctx.fillStyle = "#f1f5f9";
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText("Periode " + p.period, 24, yStart + 24);
+    ctx.fillStyle = "#64748b";
+    ctx.font = "12px sans-serif";
+    const timeLabel = ((p.period - 1) * 10) + "' - " + (p.period * 10) + "'";
+    ctx.fillText(timeLabel, W - 80, yStart + 24);
+
+    let y = yStart + pRowH + 4;
+    const posOrder = [
+      ["keeper", [p.keeper]],
+      ["verdediger", Object.entries(p.assignments).filter(function(e) { return e[1] === "verdediger"; }).map(function(e) { return e[0]; })],
+      ["middenvelder", Object.entries(p.assignments).filter(function(e) { return e[1] === "middenvelder"; }).map(function(e) { return e[0]; })],
+      ["spits", Object.entries(p.assignments).filter(function(e) { return e[1] === "spits"; }).map(function(e) { return e[0]; })],
+    ];
+
+    posOrder.forEach(function(item) {
+      const pos = item[0];
+      const players = item[1];
+      if (players.length === 0) return;
+      const slotW = (W - 24 - (players.length - 1) * 6) / players.length;
+      players.forEach(function(player, idx) {
+        const x = 12 + idx * (slotW + 6);
+        ctx.fillStyle = posColorsBg[pos] + "33";
+        ctx.strokeStyle = posColorsBg[pos] + "88";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(x, y, slotW, rowH - 6, 7);
+        ctx.fill();
+        ctx.stroke();
+
+        const badgeW = 80;
+        ctx.fillStyle = posColorsBg[pos];
+        ctx.beginPath();
+        ctx.roundRect(x + 6, y + 6, badgeW, rowH - 18, 5);
+        ctx.fill();
+        ctx.fillStyle = posColorsText[pos];
+        ctx.font = "bold 10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(posLabels[pos], x + 6 + badgeW / 2, y + 18);
+        ctx.textAlign = "left";
+
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText(player, x + badgeW + 14, y + 22);
+      });
+      y += rowH;
+    });
+
+    if (p.subs && p.subs.length > 0) {
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.lineWidth = 1;
+      p.subs.forEach(function(sub, idx) {
+        ctx.beginPath();
+        ctx.roundRect(12, y, W - 24, rowH - 6, 7);
+        ctx.fill();
+        ctx.stroke();
+        const badgeW = 80;
+        ctx.fillStyle = posColorsBg.wissel;
+        ctx.beginPath();
+        ctx.roundRect(18, y + 6, badgeW, rowH - 18, 5);
+        ctx.fill();
+        ctx.fillStyle = posColorsText.wissel;
+        ctx.font = "bold 10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(posLabels.wissel, 18 + badgeW / 2, y + 18);
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText(sub, badgeW + 32, y + 22);
+        y += rowH;
+      });
+    }
+
+    return y + 8;
+  }
+
+  let y = headerH + 8;
+  schema.forEach(function(p) {
+    y = drawPeriod(p, y);
+  });
+
+  // Footer
+  ctx.fillStyle = "#475569";
+  ctx.font = "11px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("JO9-2 - " + aanwezig.join(", "), W / 2, y + 20);
+
+  return canvas;
+}
+
+// -- UI Components -------------------------------------------------------------
+
+function Card(props) {
+  return (
+    <div style={Object.assign({
+      background: "rgba(255,255,255,0.04)", borderRadius: 14, padding: 18,
+      border: "1px solid rgba(255,255,255,0.08)", marginBottom: 16,
+    }, props.style || {})}>
+      {props.children}
+    </div>
+  );
+}
+
+function SectionTitle(props) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 15, fontWeight: 700 }}>{props.icon} {props.title}</div>
+      {props.sub && <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 3 }}>{props.sub}</div>}
+    </div>
+  );
+}
+
+function Warn(props) {
+  return (
+    <div style={{
+      color: "#f87171", fontSize: 13, marginBottom: 12, padding: "8px 12px",
+      background: "rgba(239,68,68,0.08)", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)",
+    }}>
+      {props.children}
+    </div>
+  );
+}
+
+function Btn(props) {
+  const styles = {
+    primary:   { background: "linear-gradient(90deg,#1d4ed8,#2563eb)", color: "#fff", border: "none" },
+    success:   { background: "linear-gradient(90deg,#16a34a,#22c55e)", color: "#fff", border: "none" },
+    secondary: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8" },
+    blue:      { background: "rgba(29,78,216,0.3)", border: "1px solid rgba(59,130,246,0.4)", color: "#93c5fd" },
+  };
+  return (
+    <button
+      onClick={props.disabled ? undefined : props.onClick}
+      style={Object.assign({
+        flex: props.flex || undefined, padding: "13px", borderRadius: 10,
+        fontSize: 14, fontWeight: 700, cursor: props.disabled ? "not-allowed" : "pointer",
+        opacity: props.disabled ? 0.4 : 1,
+      }, styles[props.variant || "primary"])}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+function PlayerChip(props) {
+  const c = POS_COLORS[props.position] || { bg: "#374151", text: "#fff" };
+  const label = props.position === "verdediger" ? "verdediger" : props.position;
+  const isDragging = props.dragging;
+  const isOver = props.isOver;
+  return (
+    <div
+      draggable={!!props.onDragStart}
+      onDragStart={props.onDragStart || undefined}
+      onDragOver={props.onDragOver || undefined}
+      onDrop={props.onDrop || undefined}
+      onDragEnter={props.onDragEnter || undefined}
+      onDragLeave={props.onDragLeave || undefined}
+      style={{
+        display: "flex", alignItems: "center", gap: 10,
+        background: isOver ? (c.bg + "55") : (c.bg + "22"),
+        border: "1.5px solid " + (isOver ? c.bg : c.bg + "55"),
+        borderRadius: 8, padding: "8px 12px",
+        opacity: isDragging ? 0.4 : 1,
+        cursor: props.onDragStart ? "grab" : "default",
+        transition: "background 0.15s, border 0.15s, opacity 0.15s",
+        transform: isOver ? "scale(1.02)" : "scale(1)",
+      }}
+    >
+      <span style={{
+        background: c.bg, color: c.text, borderRadius: 6, padding: "2px 8px",
+        fontSize: 11, fontWeight: 800, minWidth: 82, textAlign: "center",
+        textTransform: "uppercase", letterSpacing: 0.5,
+      }}>
+        {POS_ICONS[props.position]} {label}
+      </span>
+      <span style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9" }}>{props.player}</span>
+      {props.onDragStart && (
+        <span style={{ marginLeft: "auto", color: "#475569", fontSize: 12 }}>&#8597;</span>
+      )}
+    </div>
+  );
+}
+
+function StepBar(props) {
+  const steps = [
+    { id: "history",  label: "Geschiedenis", icon: "📂" },
+    { id: "aanwezig", label: "Aanwezigheid",  icon: "👥" },
+    { id: "keepers",  label: "Keepers",       icon: "🧤" },
+    { id: "schema",   label: "Schema",        icon: "📋" },
+  ];
+  const idx = steps.findIndex(function(s) { return s.id === props.step; });
+  return (
+    <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
+      {steps.map(function(s, i) {
+        const active = props.step === s.id;
+        const done = i < idx;
+        return (
+          <div key={s.id} style={{
+            flex: 1, padding: "8px 4px", borderRadius: 10, textAlign: "center",
+            background: active ? "#1d4ed8" : done ? "#1e3a5f" : "rgba(255,255,255,0.04)",
+            border: "2px solid " + (active ? "#f59e0b" : done ? "#3b82f6" : "rgba(255,255,255,0.08)"),
+            fontSize: 11, fontWeight: active ? 700 : 500,
+            color: active ? "#fff" : done ? "#93c5fd" : "#475569",
+          }}>
+            <div style={{ fontSize: 16, marginBottom: 2 }}>{s.icon}</div>
+            {s.label}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// -- SwapSchema component (tap-to-select, works on iOS + desktop) --------------
+
+function SwapSchema(props) {
+  const { schema, aanwezig, matchDate, history, wisselInfo, summary, hStats, swapInPeriod, onRegenerate, onExport, exporting, onReset } = props;
+  // selected = { periodIdx, player } or null
+  const [selected, setSelected] = useState(null);
+
+  function handleTap(periodIdx, player, position) {
+    if (position === "keeper") return; // keeper is fixed
+
+    if (!selected) {
+      // First tap: select this player
+      setSelected({ periodIdx: periodIdx, player: player });
+      return;
+    }
+
+    if (selected.periodIdx !== periodIdx) {
+      // Tapped in a different period: switch selection to new period
+      setSelected({ periodIdx: periodIdx, player: player });
+      return;
+    }
+
+    if (selected.player === player) {
+      // Tapped same player: deselect
+      setSelected(null);
+      return;
+    }
+
+    // Second tap in same period: swap the two players
+    swapInPeriod(periodIdx, selected.player, player);
+    setSelected(null);
+  }
+
+  function chip(periodIdx, player, position) {
+    const isSelected = selected && selected.periodIdx === periodIdx && selected.player === player;
+    const isSwapTarget = selected && selected.periodIdx === periodIdx && selected.player !== player && position !== "keeper";
+    const isFixed = position === "keeper";
+    const c = POS_COLORS[position] || { bg: "#374151", text: "#fff" };
+    const label = position === "verdediger" ? "verdediger" : position;
+
+    return (
+      <div
+        key={player}
+        onClick={function() { handleTap(periodIdx, player, position); }}
+        style={{
+          display: "flex", alignItems: "center", gap: 10,
+          background: isSelected ? (c.bg + "66") : isSwapTarget ? "rgba(250,204,21,0.15)" : (c.bg + "22"),
+          border: "2px solid " + (isSelected ? c.bg : isSwapTarget ? "#facc15" : c.bg + "55"),
+          borderRadius: 8, padding: "8px 12px",
+          cursor: isFixed ? "default" : "pointer",
+          transform: isSelected ? "scale(1.02)" : "scale(1)",
+          transition: "all 0.15s",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          boxShadow: isSelected ? ("0 0 0 3px " + c.bg + "44") : isSwapTarget ? "0 0 0 2px #facc1544" : "none",
+        }}
+      >
+        <span style={{
+          background: c.bg, color: c.text, borderRadius: 6, padding: "2px 8px",
+          fontSize: 11, fontWeight: 800, minWidth: 82, textAlign: "center",
+          textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0,
+        }}>
+          {POS_ICONS[position]} {label}
+        </span>
+        <span style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9", flex: 1 }}>{player}</span>
+        {isSelected && (
+          <span style={{ fontSize: 18, marginLeft: 4 }}>✏️</span>
+        )}
+        {isSwapTarget && (
+          <span style={{ fontSize: 18, marginLeft: 4 }}>⇄</span>
+        )}
+        {!isFixed && !isSelected && !isSwapTarget && (
+          <span style={{ fontSize: 12, color: "#475569", marginLeft: 4 }}>tap</span>
+        )}
+      </div>
+    );
+  }
+
+  function renderPeriod(p, periodIdx) {
+    const verdedigers = Object.entries(p.assignments).filter(function(e) { return e[1] === "verdediger"; }).map(function(e) { return e[0]; });
+    const middenvelders = Object.entries(p.assignments).filter(function(e) { return e[1] === "middenvelder"; }).map(function(e) { return e[0]; });
+    const spitsen = Object.entries(p.assignments).filter(function(e) { return e[1] === "spits"; }).map(function(e) { return e[0]; });
+    const hasSelection = selected && selected.periodIdx === periodIdx;
+
+    return (
+      <div key={p.period} style={{
+        background: "rgba(255,255,255,0.04)", borderRadius: 14, padding: 16,
+        marginBottom: 14,
+        border: "1px solid " + (hasSelection ? "rgba(250,204,21,0.4)" : "rgba(255,255,255,0.08)"),
+        transition: "border 0.2s",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>Periode {p.period}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {hasSelection ? (
+              <span style={{ fontSize: 11, color: "#facc15", fontWeight: 600 }}>
+                {selected.player} geselecteerd — tik op een andere speler
+              </span>
+            ) : (
+              <span style={{ fontSize: 11, color: "#475569", fontStyle: "italic" }}>tik 2x om te wisselen</span>
+            )}
+            <div style={{ fontSize: 12, color: "#94a3b8", background: "rgba(255,255,255,0.06)", padding: "3px 10px", borderRadius: 20 }}>
+              {(p.period - 1) * 10}' - {p.period * 10}'
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {chip(periodIdx, p.keeper, "keeper")}
+          <div style={{ display: "flex", gap: 8 }}>
+            {verdedigers.map(function(pl) { return <div key={pl} style={{ flex: 1 }}>{chip(periodIdx, pl, "verdediger")}</div>; })}
+          </div>
+          {middenvelders.map(function(pl) { return chip(periodIdx, pl, "middenvelder"); })}
+          <div style={{ display: "flex", gap: 8 }}>
+            {spitsen.map(function(pl) { return <div key={pl} style={{ flex: 1 }}>{chip(periodIdx, pl, "spits")}</div>; })}
+          </div>
+          {p.subs && p.subs.length > 0 && (
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+              {p.subs.map(function(s) { return chip(periodIdx, s, "wissel"); })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{
+        background: "linear-gradient(135deg,rgba(29,78,216,0.3),rgba(30,58,138,0.3))",
+        borderRadius: 12, padding: "14px 18px", marginBottom: 18,
+        border: "1px solid rgba(59,130,246,0.3)",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 16 }}>⚽ JO9-2</div>
+          {matchDate && (
+            <div style={{ fontSize: 13, color: "#93c5fd", marginTop: 2 }}>
+              {new Date(matchDate + "T12:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}
+            </div>
+          )}
+          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+            {aanwezig.length} spelers - {wisselInfo}
+            {history.length > 0 && (" - " + history.length + " wedstrijden als basis")}
+          </div>
+        </div>
+        <div style={{ fontSize: 32 }}>🏆</div>
+      </div>
+
+      {schema.map(function(p, i) { return renderPeriod(p, i); })}
+
+      <Card>
+        <SectionTitle icon="📊" title="Overzicht deze wedstrijd" />
+        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          {aanwezig.map(function(player) {
+            const counts = summary[player] || {};
+            return (
+              <div key={player} style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px",
+              }}>
+                <div style={{ width: 68, fontWeight: 600, fontSize: 13 }}>{player}</div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {Object.entries(counts).map(function(entry) {
+                    const pos = entry[0]; const cnt = entry[1];
+                    if (!cnt) return null;
+                    return (
+                      <span key={pos} style={{
+                        background: POS_COLORS[pos] && POS_COLORS[pos].bg,
+                        color: POS_COLORS[pos] && POS_COLORS[pos].text,
+                        borderRadius: 6, padding: "2px 7px", fontSize: 11, fontWeight: 700,
+                      }}>
+                        {POS_ICONS[pos]} {pos === "verdediger" ? "verd" : pos} x{cnt}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {history.length > 0 && (
+        <Card>
+          <SectionTitle icon="📈" title="Cumulatief seizoensoverzicht" sub={history.length + " eerdere wedstrijden + deze wedstrijd"} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            {aanwezig.map(function(player) {
+              const hs = hStats[player] || {};
+              const cur = summary[player] || {};
+              const merged = {};
+              ["keeper","verdediger","middenvelder","spits","wissel"].forEach(function(pos) {
+                merged[pos] = (hs[pos] || 0) + (cur[pos] || 0);
+              });
+              return (
+                <div key={player} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>{player}</span>
+                    {hs.lastWasWissel && (
+                      <span style={{ fontSize: 11, color: "#f59e0b", background: "rgba(245,158,11,0.15)", borderRadius: 4, padding: "2px 6px" }}>
+                        vorige keer wissel
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                    {Object.entries(merged).map(function(entry) {
+                      const pos = entry[0]; const cnt = entry[1];
+                      if (!cnt) return null;
+                      const bg = POS_COLORS[pos] && POS_COLORS[pos].bg;
+                      return (
+                        <span key={pos} style={{
+                          background: bg + "33", border: "1px solid " + bg + "55",
+                          color: bg === "#374151" ? "#9ca3af" : bg,
+                          borderRadius: 6, padding: "2px 7px", fontSize: 11, fontWeight: 700,
+                        }}>
+                          {POS_ICONS[pos]} {pos === "verdediger" ? "verd" : pos} {cnt}x
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
+      <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+        <Btn variant="blue" flex={1} onClick={onRegenerate}>Opnieuw</Btn>
+        <Btn variant="success" flex={1} onClick={onExport} disabled={exporting}>
+          {exporting ? "Bezig..." : "📸 Exporteer"}
+        </Btn>
+        <Btn variant="secondary" flex={1} onClick={onReset}>Nieuw</Btn>
+      </div>
+    </div>
+  );
+}
+
+// -- Main App ------------------------------------------------------------------
+
+function App() {
+  const [step, setStep]               = useState("history");
+  const [history, setHistory]         = useState([]);
+  const [historyFile, setHistoryFile] = useState(null);
+  const [parseError, setParseError]   = useState("");
+  const [detectedFormat, setDetectedFormat] = useState("");
+  const [aanwezig, setAanwezig]       = useState(ALL_PLAYERS.slice());
+  const [keepers, setKeepers]         = useState([null, null]);
+  const [schema, setSchema]           = useState(null);
+  const [matchDate, setMatchDate]     = useState("");
+  const [exporting, setExporting]     = useState(false);
+  const fileRef = useRef();
+
+  const handleFile = useCallback(function(file) {
+    if (!file) return;
+    setParseError("");
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const wb = XLSX.read(e.target.result, { type: "array" });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+        const firstRow = raw[0] || [];
+        const isNew = firstRow.some(function(c) { return typeof c === "string" && c.toLowerCase().includes("speler"); });
+        setDetectedFormat(isNew ? "nieuw" : "origineel");
+        const parsed = parseHistory(wb);
+        if (parsed.length === 0) {
+          setParseError("Geen geldige wedstrijddata gevonden.");
+          return;
+        }
+        setHistory(parsed);
+        setHistoryFile(file.name);
+      } catch(err) {
+        setParseError("Fout bij lezen: " + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }, []);
+
+  function togglePlayer(p) {
+    setAanwezig(function(prev) {
+      return prev.includes(p) ? prev.filter(function(x) { return x !== p; }) : prev.concat([p]);
+    });
+  }
+
+  function setKeeper(half, player) {
+    setKeepers(function(prev) {
+      const n = prev.slice();
+      n[half] = player;
+      return n;
+    });
+  }
+
+  function canGenerate() {
+    return aanwezig.length >= 6 && aanwezig.length <= 8 &&
+      keepers[0] && keepers[1] &&
+      aanwezig.includes(keepers[0]) && aanwezig.includes(keepers[1]) &&
+      keepers[0] !== keepers[1];
+  }
+
+  function generate() {
+    setSchema(generateSchema(aanwezig, keepers, history));
+    setStep("schema");
+  }
+
+  function reset() {
+    setStep("history");
+    setAanwezig(ALL_PLAYERS.slice());
+    setKeepers([null, null]);
+    setSchema(null);
+    setMatchDate("");
+  }
+
+  const [exportDataUrl, setExportDataUrl] = useState(null);
+
+  function doExport() {
+    if (!schema) return;
+    setExporting(true);
+    try {
+      const canvas = exportSchemaAsImage(schema, aanwezig, matchDate, keepers);
+      const dataUrl = canvas.toDataURL("image/png");
+      const dateStr = matchDate ? matchDate.replace(/-/g, "") : new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const filename = "JO9-2_schema_" + dateStr + ".png";
+
+      // Try File System Access API first (lets user pick save location)
+      if (window.showSaveFilePicker) {
+        canvas.toBlob(function(blob) {
+          window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: "PNG afbeelding", accept: { "image/png": [".png"] } }],
+          }).then(function(fileHandle) {
+            return fileHandle.createWritable();
+          }).then(function(writable) {
+            return writable.write(blob).then(function() { return writable.close(); });
+          }).then(function() {
+            setExporting(false);
+          }).catch(function(err) {
+            if (err.name !== "AbortError") {
+              // Fallback: show modal
+              setExportDataUrl({ url: dataUrl, filename: filename });
+            }
+            setExporting(false);
+          });
+        }, "image/png");
+      } else {
+        // Fallback: show modal with the image
+        setExportDataUrl({ url: dataUrl, filename: filename });
+        setExporting(false);
+      }
+    } catch(e) {
+      alert("Export mislukt: " + e.message);
+      setExporting(false);
+    }
+  }
+
+  const histStats = buildStats(history, ALL_PLAYERS);
+  const wisselInfo = aanwezig.length <= 6 ? "geen wissel" : aanwezig.length === 7 ? "1 wissel per periode" : "2 wissels per periode";
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%)",
+      fontFamily: "Segoe UI,system-ui,sans-serif", color: "#f1f5f9",
+    }}>
+      <div style={{
+        background: "linear-gradient(90deg,#1e40af,#1d4ed8,#2563eb)",
+        padding: "18px 24px 14px", borderBottom: "3px solid #f59e0b",
+        display: "flex", alignItems: "center", gap: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+      }}>
+        <span style={{ fontSize: 34 }}>⚽</span>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>JO9-2 Wisselschema</div>
+          <div style={{ fontSize: 12, color: "#93c5fd", marginTop: 1 }}>Automatisch - Eerlijk - Historisch onderbouwd</div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "24px 16px" }}>
+        <StepBar step={step} />
+
+        {step === "history" && (
+          <div>
+            <Card>
+              <SectionTitle icon="📂" title="Vorige opstellingen laden" sub="Upload je bestaande wisselschema of het geconverteerde bestand" />
+              <div
+                onClick={function() { fileRef.current && fileRef.current.click(); }}
+                onDragOver={function(e) { e.preventDefault(); }}
+                onDrop={function(e) { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
+                style={{
+                  border: "2px dashed " + (historyFile ? "#22c55e" : "rgba(255,255,255,0.2)"),
+                  borderRadius: 12, padding: "28px 20px", textAlign: "center",
+                  background: historyFile ? "rgba(34,197,94,0.08)" : "rgba(255,255,255,0.03)",
+                  cursor: "pointer", marginBottom: 14,
+                }}
+              >
+                <div style={{ fontSize: 36, marginBottom: 8 }}>{historyFile ? "✅" : "📊"}</div>
+                {historyFile ? (
+                  <div>
+                    <div style={{ fontWeight: 700, color: "#4ade80" }}>{historyFile}</div>
+                    <div style={{ fontSize: 13, color: "#86efac", marginTop: 4 }}>
+                      {history.length} wedstrijd{history.length !== 1 ? "en" : ""} geladen
+                    </div>
+                    <div style={{
+                      display: "inline-block", marginTop: 8, fontSize: 11,
+                      background: detectedFormat === "origineel" ? "rgba(245,158,11,0.2)" : "rgba(34,197,94,0.2)",
+                      color: detectedFormat === "origineel" ? "#f59e0b" : "#4ade80",
+                      borderRadius: 6, padding: "2px 8px",
+                    }}>
+                      {detectedFormat === "origineel" ? "Origineel formaat herkend" : "App-formaat herkend"}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontWeight: 600, color: "#94a3b8" }}>Klik of sleep .xlsx bestand hier</div>
+                    <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>Optioneel - je kunt ook zonder doorgaan</div>
+                  </div>
+                )}
+              </div>
+              <input ref={fileRef} type="file" accept=".xlsx" style={{ display: "none" }}
+                onChange={function(e) { handleFile(e.target.files[0]); }} />
+
+              {parseError && <Warn>{parseError}</Warn>}
+
+              {history.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#94a3b8", marginBottom: 8 }}>Geladen wedstrijden:</div>
+                  {history.slice(-5).map(function(m) {
+                    return (
+                      <div key={m.id} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "7px 12px",
+                        fontSize: 12, marginBottom: 5,
+                      }}>
+                        <span style={{ color: "#93c5fd", fontWeight: 600 }}>Wedstrijd {m.id}</span>
+                        {m.datum && <span style={{ color: "#64748b" }}>{m.datum}</span>}
+                        <span style={{ color: "#475569" }}>{Object.keys(m.players).join(", ")}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+            <div style={{ display: "flex", gap: 10 }}>
+              {historyFile && (
+                <Btn variant="secondary" flex={1} onClick={function() { setHistory([]); setHistoryFile(null); setParseError(""); setDetectedFormat(""); }}>
+                  Verwijder
+                </Btn>
+              )}
+              <Btn flex={2} onClick={function() { setStep("aanwezig"); }}>
+                {history.length > 0 ? "Volgende: Aanwezigheid" : "Doorgaan zonder geschiedenis"}
+              </Btn>
+            </div>
+          </div>
+        )}
+
+        {step === "aanwezig" && (
+          <div>
+            <Card>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, color: "#94a3b8", marginBottom: 6 }}>Wedstrijddatum (optioneel)</label>
+                <input type="date" value={matchDate}
+                  onChange={function(e) { setMatchDate(e.target.value); }}
+                  style={{
+                    width: "100%", padding: "10px 14px", borderRadius: 8,
+                    background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
+                    color: "#f1f5f9", fontSize: 15, boxSizing: "border-box",
+                  }} />
+              </div>
+              <SectionTitle icon="👥" title="Wie zijn er aanwezig?" sub={"Selecteer 6 t/m 8 spelers (" + aanwezig.length + " geselecteerd)"} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {ALL_PLAYERS.map(function(p) {
+                  const selected = aanwezig.includes(p);
+                  const hs = histStats[p];
+                  return (
+                    <button key={p} onClick={function() { togglePlayer(p); }} style={{
+                      padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                      border: "2px solid " + (selected ? "#3b82f6" : "rgba(255,255,255,0.08)"),
+                      background: selected ? "rgba(59,130,246,0.18)" : "rgba(255,255,255,0.03)",
+                      color: selected ? "#93c5fd" : "#64748b",
+                      fontWeight: 600, fontSize: 14, textAlign: "left",
+                      display: "flex", alignItems: "center", gap: 8,
+                    }}>
+                      <span style={{ fontSize: 18 }}>{selected ? "✅" : "⬜"}</span>
+                      <span>{p}</span>
+                      {hs && hs.lastWasWissel && selected && (
+                        <span style={{ fontSize: 10, marginLeft: "auto", color: "#f59e0b", background: "rgba(245,158,11,0.15)", borderRadius: 4, padding: "1px 5px" }}>
+                          was wissel
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+            {aanwezig.length < 6 && <Warn>Minimaal 6 spelers nodig</Warn>}
+            {aanwezig.length > 8 && <Warn>Maximaal 8 spelers mogelijk</Warn>}
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="secondary" flex={1} onClick={function() { setStep("history"); }}>Terug</Btn>
+              <Btn flex={2} onClick={function() { setStep("keepers"); }} disabled={aanwezig.length < 6 || aanwezig.length > 8}>
+                Volgende: Keepers
+              </Btn>
+            </div>
+          </div>
+        )}
+
+        {step === "keepers" && (
+          <div>
+            <Card>
+              <SectionTitle icon="🧤" title="Wie keepen er?" sub="De keeper wisselt halverwege - na periode 2" />
+              {[0, 1].map(function(half) {
+                return (
+                  <div key={half} style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f59e0b", marginBottom: 8 }}>
+                      {half === 0 ? "1e helft (periode 1-2)" : "2e helft (periode 3-4)"}
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      {aanwezig.map(function(p) {
+                        const selected = keepers[half] === p;
+                        const other = keepers[1 - half];
+                        return (
+                          <button key={p} onClick={function() { setKeeper(half, p); }} style={{
+                            padding: "11px 14px", borderRadius: 10, cursor: "pointer",
+                            border: "2px solid " + (selected ? "#f59e0b" : "rgba(255,255,255,0.08)"),
+                            background: selected ? "rgba(245,158,11,0.18)" : "rgba(255,255,255,0.03)",
+                            color: selected ? "#fbbf24" : "#94a3b8",
+                            fontWeight: 600, fontSize: 14, textAlign: "left",
+                            display: "flex", alignItems: "center", gap: 8,
+                          }}>
+                            {selected ? "🧤" : "⬜"} {p}
+                            {other === p && !selected && (
+                              <span style={{ fontSize: 10, marginLeft: "auto", color: "#f59e0b" }}>
+                                {half === 0 ? "2e" : "1e"} helft
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+              {keepers[0] === keepers[1] && keepers[0] && <Warn>Kies twee verschillende keepers</Warn>}
+            </Card>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="secondary" flex={1} onClick={function() { setStep("aanwezig"); }}>Terug</Btn>
+              <Btn variant="success" flex={2} onClick={generate} disabled={!canGenerate()}>Genereer Schema</Btn>
+            </div>
+          </div>
+        )}
+
+        {step === "schema" && schema && (function() {
+          const summary = getSummary(schema, aanwezig);
+          const hStats = buildStats(history, aanwezig);
+
+          // Swap two players within a period's assignments
+          function swapInPeriod(periodIdx, playerA, playerB) {
+            setSchema(function(prev) {
+              return prev.map(function(p, i) {
+                if (i !== periodIdx) return p;
+                const newAssign = Object.assign({}, p.assignments);
+                const posA = newAssign[playerA];
+                const posB = newAssign[playerB];
+                // Enforce Bastiaan must be verdediger: block swaps that would break this
+                if (playerA === "Bastiaan" && posB !== "verdediger") return p;
+                if (playerB === "Bastiaan" && posA !== "verdediger") return p;
+                newAssign[playerA] = posB;
+                newAssign[playerB] = posA;
+                // Recalculate subs from assignments
+                const newSubs = p.subs.slice();
+                return Object.assign({}, p, { assignments: newAssign, subs: newSubs });
+              });
+            });
+          }
+
+          return (
+            <SwapSchema
+              schema={schema}
+              aanwezig={aanwezig}
+              matchDate={matchDate}
+              history={history}
+              wisselInfo={wisselInfo}
+              summary={summary}
+              hStats={hStats}
+              swapInPeriod={swapInPeriod}
+              onRegenerate={function() { setSchema(generateSchema(aanwezig, keepers, history)); }}
+              onExport={doExport}
+              exporting={exporting}
+              onReset={reset}
+            />
+          );
+        })()}
+      </div>
+
+      {exportDataUrl && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 1000, padding: 20,
+        }}
+          onClick={function() { setExportDataUrl(null); }}
+        >
+          <div
+            onClick={function(e) { e.stopPropagation(); }}
+            style={{
+              background: "#1e293b", borderRadius: 16, padding: 24,
+              border: "1px solid rgba(255,255,255,0.12)",
+              maxWidth: 520, width: "100%", boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>📸 Schema exporteren</div>
+            <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 16 }}>
+              Houd de afbeelding ingedrukt (mobiel) of klik met rechtermuisknop om op te slaan.
+            </div>
+            <div style={{ borderRadius: 10, overflow: "hidden", marginBottom: 16, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <img
+                src={exportDataUrl.url}
+                alt="JO9-2 schema"
+                style={{ width: "100%", display: "block" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <a
+                href={exportDataUrl.url}
+                download={exportDataUrl.filename}
+                style={{
+                  flex: 2, padding: "12px", borderRadius: 10, textAlign: "center",
+                  background: "linear-gradient(90deg,#16a34a,#22c55e)", color: "#fff",
+                  fontWeight: 700, fontSize: 14, textDecoration: "none",
+                  display: "block",
+                }}
+              >
+                Downloaden als PNG
+              </a>
+              <button
+                onClick={function() { setExportDataUrl(null); }}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 10,
+                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#94a3b8", fontWeight: 700, fontSize: 14, cursor: "pointer",
+                }}
+              >
+                Sluiten
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+    // Mount the app
+    const container = document.getElementById("root");
+    const root = ReactDOM.createRoot(container);
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
