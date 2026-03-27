@@ -2,34 +2,30 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="JO9-2" />
-  <meta name="theme-color" content="#0f172a" />
   <title>JO9-2 Wisselschema</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
-    #root { min-height: 100vh; }
-    /* iOS safe area */
-    .app-header { padding-top: max(18px, env(safe-area-inset-top)); }
+    body { background: #0f172a; color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+    button, input { -webkit-appearance: none; font-family: inherit; }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
-  <!-- React -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel for JSX transpilation -->
-  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-  <!-- SheetJS for Excel -->
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script type="text/babel" data-presets="react">
     const { useState, useCallback, useRef } = React;
-    const XLSX = window.XLSX;
+    const XLSX_LIB = XLSX;
+    // Re-expose as XLSX for the app code
+    const XLSXProxy = XLSX_LIB;
 
 
 const ALL_PLAYERS = ["Noud", "Bastiaan", "James", "Giulio", "Bram", "Coen", "Izzy", "Abel"];
@@ -61,7 +57,7 @@ function normalizeName(raw) {
 
 function parseHistory(workbook) {
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+  const raw = XLSX_LIB.utils.sheet_to_json(sheet, { header: 1, defval: null });
   const firstRow = raw[0] || [];
   const isNew = firstRow.some(function(c) { return typeof c === "string" && c.toLowerCase().includes("speler"); });
   return isNew ? parseNewFormat(raw) : parseOriginalFormat(raw);
@@ -110,7 +106,7 @@ function parseOriginalFormat(raw) {
       if (rawDate) {
         try {
           if (typeof rawDate === "number") {
-            const d = XLSX.SSF.parse_date_code(rawDate);
+            const d = XLSX_LIB.SSF.parse_date_code(rawDate);
             datum = String(d.d).padStart(2,"0") + "-" + String(d.m).padStart(2,"0") + "-" + d.y;
           } else {
             datum = String(rawDate).trim();
@@ -148,17 +144,26 @@ function parseOriginalFormat(raw) {
 function buildStats(history, players) {
   const stats = {};
   players.forEach(function(p) {
-    stats[p] = { wissel: 0, keeper: 0, verdediger: 0, middenvelder: 0, spits: 0, lastWasWissel: false };
+    stats[p] = { wissel: 0, keeper: 0, verdediger: 0, middenvelder: 0, spits: 0, aanvallend: 0, lastWasWissel: false, wedstrijden: 0 };
   });
   history.forEach(function(match) {
     Object.entries(match.players).forEach(function(entry) {
       const player = entry[0];
       const periods = entry[1];
       if (!stats[player]) return;
+      stats[player].wedstrijden++;
       [periods.p1, periods.p2, periods.p3, periods.p4].forEach(function(pos) {
         if (pos && stats[player][pos] !== undefined) stats[player][pos]++;
+        if (pos === "middenvelder" || pos === "spits") stats[player].aanvallend++;
       });
     });
+  });
+  // Compute average wissel count across all players with history
+  const totaalWissel = players.reduce(function(sum, p) { return sum + (stats[p] ? stats[p].wissel : 0); }, 0);
+  const metHistory = players.filter(function(p) { return stats[p] && stats[p].wedstrijden > 0; }).length;
+  const gemWissel = metHistory > 0 ? totaalWissel / metHistory : 0;
+  players.forEach(function(p) {
+    if (stats[p]) stats[p].wisselAchterstand = gemWissel - stats[p].wissel; // positive = has had fewer subs than average
   });
   if (history.length > 0) {
     const last = history[history.length - 1];
@@ -175,15 +180,43 @@ function buildStats(history, players) {
 
 // -- Position assignment -------------------------------------------------------
 
-function assignFair(players, positions, stats, matchPos) {
+function assignFair(players, positions, stats, matchPos, forbiddenVerd) {
   const result = {};
   const availPos = positions.slice();
-  const order = players.slice().sort(function() { return Math.random() - 0.5; });
+
+  // Sort players by aanvallend score ascending: least aanvallend picks first
+  const order = players.slice().sort(function(a, b) {
+    const aHist = (stats[a] && stats[a].aanvallend) || 0;
+    const bHist = (stats[b] && stats[b].aanvallend) || 0;
+    const aMatch = ((matchPos[a] && matchPos[a].middenvelder) || 0) + ((matchPos[a] && matchPos[a].spits) || 0);
+    const bMatch = ((matchPos[b] && matchPos[b].middenvelder) || 0) + ((matchPos[b] && matchPos[b].spits) || 0);
+    const aTotal = aHist + aMatch * 4;
+    const bTotal = bHist + bMatch * 4;
+    return aTotal - bTotal + (Math.random() - 0.5) * 0.5; // small noise to avoid always same order on ties
+  });
+
   order.forEach(function(player) {
+    const forbidden = [];
+    if (forbiddenVerd && forbiddenVerd.includes(player)) forbidden.push("verdediger");
+    if (player !== "Bastiaan" && (matchPos[player] && matchPos[player].verdediger >= 1)) forbidden.push("verdediger");
+
+    // Sort available positions: prefer aanvallend for players with low aanvallend score,
+    // prefer verdediger for players with high aanvallend score
+    const histAanvallend = (stats[player] && stats[player].aanvallend) || 0;
+    const matchAanvallend = ((matchPos[player] && matchPos[player].middenvelder) || 0) + ((matchPos[player] && matchPos[player].spits) || 0);
+    const totalAanvallend = histAanvallend + matchAanvallend * 4;
+
     const sorted = availPos.slice().sort(function(a, b) {
-      const aT = ((stats[player] && stats[player][a]) || 0) + ((matchPos[player] && matchPos[player][a]) || 0) * 2;
-      const bT = ((stats[player] && stats[player][b]) || 0) + ((matchPos[player] && matchPos[player][b]) || 0) * 2;
-      return aT - bT;
+      // Forbidden positions go last
+      if (forbidden.includes(a) && !forbidden.includes(b)) return 1;
+      if (!forbidden.includes(a) && forbidden.includes(b)) return -1;
+      const aIsAanvallend = (a === "middenvelder" || a === "spits");
+      const bIsAanvallend = (b === "middenvelder" || b === "spits");
+      // Player with few aanvallend periods should prefer aanvallend positions
+      // Player with many aanvallend periods should prefer verdediger
+      if (aIsAanvallend && !bIsAanvallend) return totalAanvallend <= 0 ? -1 : totalAanvallend < 3 ? -1 : 1;
+      if (!aIsAanvallend && bIsAanvallend) return totalAanvallend <= 0 ? 1 : totalAanvallend < 3 ? 1 : -1;
+      return 0;
     });
     const chosen = sorted[0];
     result[player] = chosen;
@@ -192,14 +225,18 @@ function assignFair(players, positions, stats, matchPos) {
   return result;
 }
 
-function assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub) {
+function assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub, exKeeper, stats, matchPos) {
   const assignments = {};
   assignments[keeper] = "keeper";
+
+  // Everyone keeps their previous position
   fieldPlayers.forEach(function(player) {
     if (player === keeper) return;
     const prev = prevAssignments[player];
     if (prev && prev !== "keeper" && prev !== "wissel") assignments[player] = prev;
   });
+
+  // Incoming sub: pick the fairest available position from what the outgoing sub held
   if (incomingSub && outgoingSub) {
     const inherited = prevAssignments[outgoingSub];
     if (inherited && inherited !== "keeper" && inherited !== "wissel") {
@@ -210,15 +247,35 @@ function assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoi
         });
         if (swapTarget) assignments[swapTarget] = inherited;
       } else {
+        // Give the incoming sub the inherited position — it's the only free slot
         assignments[incomingSub] = inherited;
       }
     }
   }
+
+  // Enforce Bastiaan = verdediger
   if (fieldPlayers.includes("Bastiaan") && keeper !== "Bastiaan" && assignments["Bastiaan"] !== "verdediger") {
-    const swap = fieldPlayers.find(function(p) { return p !== keeper && p !== "Bastiaan" && assignments[p] === "verdediger"; });
-    if (swap) assignments[swap] = assignments["Bastiaan"];
+    const oldPos = assignments["Bastiaan"];
     assignments["Bastiaan"] = "verdediger";
+    const swapTarget = fieldPlayers.find(function(p) {
+      return p !== keeper && p !== "Bastiaan" && assignments[p] === "verdediger";
+    });
+    if (swapTarget && oldPos) assignments[swapTarget] = oldPos;
   }
+
+  // Enforce ex-keeper must not be verdediger
+  if (exKeeper && fieldPlayers.includes(exKeeper) && assignments[exKeeper] === "verdediger") {
+    const swapTarget = fieldPlayers.find(function(p) {
+      return p !== keeper && p !== exKeeper && p !== "Bastiaan" && assignments[p] && assignments[p] !== "verdediger";
+    });
+    if (swapTarget) {
+      const tmp = assignments[swapTarget];
+      assignments[swapTarget] = "verdediger";
+      assignments[exKeeper] = tmp;
+    }
+  }
+
+  // Fill any unassigned field players (edge cases)
   const allPos = ["verdediger", "verdediger", "middenvelder", "spits", "spits"];
   const usedPos = Object.values(assignments).filter(function(p) { return p !== "keeper"; });
   const freePos = allPos.slice();
@@ -230,7 +287,7 @@ function assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoi
   return assignments;
 }
 
-function assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos) {
+function assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos, exKeeper) {
   const prevNonBastiaanDefenders = fieldPlayers.filter(function(p) {
     return p !== keeper && p !== "Bastiaan" && prevAssignments[p] === "verdediger";
   });
@@ -238,21 +295,42 @@ function assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos) 
   const remainingPos = ["verdediger", "verdediger", "middenvelder", "spits", "spits"];
   const assignments = {};
   assignments[keeper] = "keeper";
+  // Pin Bastiaan as verdediger first
   if (toAssign.includes("Bastiaan")) {
     assignments["Bastiaan"] = "verdediger";
     remainingPos.splice(remainingPos.indexOf("verdediger"), 1);
     toAssign.splice(toAssign.indexOf("Bastiaan"), 1);
   }
-  const order = toAssign.slice().sort(function() { return Math.random() - 0.5; });
+  // Sort players by aanvallend score ascending: least aanvallend picks first
+  const order = toAssign.slice().sort(function(a, b) {
+    const aHist = (stats[a] && stats[a].aanvallend) || 0;
+    const bHist = (stats[b] && stats[b].aanvallend) || 0;
+    const aMatch = ((matchPos[a] && matchPos[a].middenvelder) || 0) + ((matchPos[a] && matchPos[a].spits) || 0);
+    const bMatch = ((matchPos[b] && matchPos[b].middenvelder) || 0) + ((matchPos[b] && matchPos[b].spits) || 0);
+    const aTotal = aHist + aMatch * 4;
+    const bTotal = bHist + bMatch * 4;
+    return aTotal - bTotal + (Math.random() - 0.5) * 0.5;
+  });
+
   const availPos = remainingPos.slice();
   order.forEach(function(player) {
-    const forbidden = prevNonBastiaanDefenders.includes(player) ? ["verdediger"] : [];
+    const forbidden = [];
+    if (prevNonBastiaanDefenders.includes(player)) forbidden.push("verdediger");
+    if (player === exKeeper) forbidden.push("verdediger");
+    if (player !== "Bastiaan" && (matchPos[player] && matchPos[player].verdediger >= 1)) forbidden.push("verdediger");
+
+    const histAanvallend = (stats[player] && stats[player].aanvallend) || 0;
+    const matchAanvallend = ((matchPos[player] && matchPos[player].middenvelder) || 0) + ((matchPos[player] && matchPos[player].spits) || 0);
+    const totalAanvallend = histAanvallend + matchAanvallend * 4;
+
     const sorted = availPos.slice().sort(function(a, b) {
       if (forbidden.includes(a) && !forbidden.includes(b)) return 1;
       if (!forbidden.includes(a) && forbidden.includes(b)) return -1;
-      const aT = ((stats[player] && stats[player][a]) || 0) + ((matchPos[player] && matchPos[player][a]) || 0) * 2;
-      const bT = ((stats[player] && stats[player][b]) || 0) + ((matchPos[player] && matchPos[player][b]) || 0) * 2;
-      return aT - bT;
+      const aIsAanvallend = (a === "middenvelder" || a === "spits");
+      const bIsAanvallend = (b === "middenvelder" || b === "spits");
+      if (aIsAanvallend && !bIsAanvallend) return totalAanvallend <= 0 ? -1 : totalAanvallend < 3 ? -1 : 1;
+      if (!aIsAanvallend && bIsAanvallend) return totalAanvallend <= 0 ? 1 : totalAanvallend < 3 ? 1 : -1;
+      return 0;
     });
     const chosen = sorted[0];
     assignments[player] = chosen;
@@ -279,13 +357,37 @@ function generateSchema(aanwezig, keepers, history) {
     let outgoingSub = null;
 
     if (subCount > 0) {
-      const candidates = aanwezig.filter(function(p) {
-        return !lastSubs.includes(p) && p !== keepers[0] && p !== keepers[1];
-      });
+      // Hard exclusions (in priority order):
+      // 1. Was wissel last period (no consecutive sub turns)
+      // 2. Is keeper this match (never sub)
+      // 3. Already had a sub turn this match — prefer others first (soft, only if alternatives exist)
+      const hadWisselThisMatch = aanwezig.filter(function(p) { return (matchPos[p] && matchPos[p].wissel) >= 1; });
+      const hardExcluded = lastSubs.concat(
+        [keepers[0], keepers[1]].filter(function(k) { return k; })
+      );
+      let candidates = aanwezig.filter(function(p) { return !hardExcluded.includes(p); });
+
+      // If enough candidates without repeats, prefer those who haven't been sub yet this match
+      const freshCandidates = candidates.filter(function(p) { return !hadWisselThisMatch.includes(p); });
+      if (freshCandidates.length >= subCount) {
+        candidates = freshCandidates;
+      }
+      // If still not enough (edge case: 6 players, 4 periods), fall back to all non-hard-excluded
+
       candidates.sort(function(a, b) {
-        const aS = ((stats[a] && stats[a].lastWasWissel) ? -100 : 0) + ((matchPos[a] && matchPos[a].wissel) || 0) * 5 + ((stats[a] && stats[a].wissel) || 0);
-        const bS = ((stats[b] && stats[b].lastWasWissel) ? -100 : 0) + ((matchPos[b] && matchPos[b].wissel) || 0) * 5 + ((stats[b] && stats[b].wissel) || 0);
-        return aS - bS + (Math.random() - 0.5) * 0.4;
+        const aLastWas = (stats[a] && stats[a].lastWasWissel) ? -1000 : 0;
+        const bLastWas = (stats[b] && stats[b].lastWasWissel) ? -1000 : 0;
+        const aAchterstand = (stats[a] && stats[a].wisselAchterstand) || 0;
+        const bAchterstand = (stats[b] && stats[b].wisselAchterstand) || 0;
+        const aMatchWissel = (matchPos[a] && matchPos[a].wissel) || 0;
+        const bMatchWissel = (matchPos[b] && matchPos[b].wissel) || 0;
+        // Lower score = more likely to be sub
+        // wisselAchterstand: positive = has had fewer subs than average = should be sub sooner
+        // Multiply by 100 so season fairness dominates over noise
+        const aS = aLastWas + (-aAchterstand * 100) + aMatchWissel * 50;
+        const bS = bLastWas + (-bAchterstand * 100) + bMatchWissel * 50;
+        // Tiny noise only to break exact ties
+        return aS - bS + (Math.random() - 0.5) * 2;
       });
       periodSubs = candidates.slice(0, subCount);
       outgoingSub = lastSubs[0] || null;
@@ -307,25 +409,29 @@ function generateSchema(aanwezig, keepers, history) {
         toAssign.splice(toAssign.indexOf("Bastiaan"), 1);
         matchPos["Bastiaan"].verdediger++;
       }
-      const assigned = assignFair(toAssign, remainingPos, stats, matchPos);
+      // keepers[1] (second half keeper) must not play verdediger in first half
+      const forbiddenVerd = (keepers[1] && keepers[1] !== keeper) ? [keepers[1]] : [];
+      const assigned = assignFair(toAssign, remainingPos, stats, matchPos, forbiddenVerd);
       Object.entries(assigned).forEach(function(e) { assignments[e[0]] = e[1]; matchPos[e[0]][e[1]]++; });
 
     } else if (period === 1) {
-      const stable = assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub);
+      // exKeeper for first half = keepers[1] must not be verdediger
+      const stable = assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub, keepers[1], stats, matchPos);
       Object.entries(stable).forEach(function(e) {
         assignments[e[0]] = e[1];
         if (e[1] !== "keeper") matchPos[e[0]][e[1]] = (matchPos[e[0]][e[1]] || 0) + 1;
       });
 
     } else if (period === 2) {
-      const shuffled = assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos);
+      // exKeeper = first half keeper, must play middenvelder or spits in second half
+      const shuffled = assignHalftime(prevAssignments, fieldPlayers, keeper, stats, matchPos, keepers[0]);
       Object.entries(shuffled).forEach(function(e) {
         assignments[e[0]] = e[1];
         if (e[1] !== "keeper") matchPos[e[0]][e[1]] = (matchPos[e[0]][e[1]] || 0) + 1;
       });
 
     } else {
-      const stable = assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub);
+      const stable = assignStable(prevAssignments, fieldPlayers, keeper, incomingSub, outgoingSub, keepers[0], stats, matchPos);
       Object.entries(stable).forEach(function(e) {
         assignments[e[0]] = e[1];
         if (e[1] !== "keeper") matchPos[e[0]][e[1]] = (matchPos[e[0]][e[1]] || 0) + 1;
@@ -349,6 +455,47 @@ function getSummary(schema, aanwezig) {
     });
   });
   return counts;
+}
+
+// -- Export to Excel -----------------------------------------------------------
+
+function exportSchemaAsXlsx(schema, aanwezig, matchDate, history) {
+  // Determine next match number
+  const matchNr = history.length + 1;
+  const datum = matchDate
+    ? (function() {
+        const d = new Date(matchDate + "T12:00");
+        return String(d.getDate()).padStart(2,"0") + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + d.getFullYear();
+      })()
+    : "";
+
+  // Build rows in app-format: Wedstrijd | Datum | Speler | P1 | P2 | P3 | P4
+  const rows = [["Wedstrijd", "Datum", "Speler", "P1", "P2", "P3", "P4"]];
+  aanwezig.forEach(function(player) {
+    const periods = [1, 2, 3, 4].map(function(pNum) {
+      const p = schema.find(function(s) { return s.period === pNum; });
+      if (!p) return "";
+      return p.assignments[player] || "";
+    });
+    rows.push([matchNr, datum, player, periods[0], periods[1], periods[2], periods[3]]);
+  });
+
+  // Prepend existing history rows
+  const existingRows = [];
+  history.forEach(function(match) {
+    Object.entries(match.players).forEach(function(entry) {
+      existingRows.push([match.id, match.datum || "", entry[0], entry[1].p1, entry[1].p2, entry[1].p3, entry[1].p4]);
+    });
+  });
+
+  const allRows = [rows[0]].concat(existingRows).concat(rows.slice(1));
+
+  const ws = XLSX_LIB.utils.aoa_to_sheet(allRows);
+  // Column widths
+  ws["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+  const wb = XLSX_LIB.utils.book_new();
+  XLSX_LIB.utils.book_append_sheet(wb, ws, "Geschiedenis");
+  return wb;
 }
 
 // -- Export to image (Canvas-based) -------------------------------------------
@@ -594,10 +741,11 @@ function PlayerChip(props) {
 
 function StepBar(props) {
   const steps = [
-    { id: "history",  label: "Geschiedenis", icon: "📂" },
-    { id: "aanwezig", label: "Aanwezigheid",  icon: "👥" },
-    { id: "keepers",  label: "Keepers",       icon: "🧤" },
-    { id: "schema",   label: "Schema",        icon: "📋" },
+    { id: "history",    label: "Geschiedenis", icon: "📂" },
+    { id: "aanwezig",  label: "Aanwezigheid",  icon: "👥" },
+    { id: "keepers",   label: "Keepers",       icon: "🧤" },
+    { id: "schema",    label: "Schema",        icon: "📋" },
+    { id: "opgeslagen", label: "Opgeslagen",   icon: "💾" },
   ];
   const idx = steps.findIndex(function(s) { return s.id === props.step; });
   return (
@@ -625,58 +773,72 @@ function StepBar(props) {
 // -- SwapSchema component (tap-to-select, works on iOS + desktop) --------------
 
 function SwapSchema(props) {
-  const { schema, aanwezig, matchDate, history, wisselInfo, summary, hStats, swapInPeriod, onRegenerate, onExport, exporting, onReset } = props;
+  const { schema, aanwezig, matchDate, history, wisselInfo, summary, hStats, swapInPeriod, onRegenerate, onExport, onExportXlsx, exporting, onSave, saveMsg, onShowSaved, onReset } = props;
   // selected = { periodIdx, player } or null
   const [selected, setSelected] = useState(null);
 
-  function handleTap(periodIdx, player, position) {
+  // All manual swaps are allowed - user can override any rule
+  function isSwapAllowed(assignments, playerA, playerB) {
+    return true;
+  }
+
+  function handleTap(periodIdx, player, position, assignments) {
     if (position === "keeper") return; // keeper is fixed
 
     if (!selected) {
-      // First tap: select this player
       setSelected({ periodIdx: periodIdx, player: player });
       return;
     }
 
     if (selected.periodIdx !== periodIdx) {
-      // Tapped in a different period: switch selection to new period
       setSelected({ periodIdx: periodIdx, player: player });
       return;
     }
 
     if (selected.player === player) {
-      // Tapped same player: deselect
       setSelected(null);
       return;
     }
 
-    // Second tap in same period: swap the two players
+    // Check if swap is allowed
+    if (!isSwapAllowed(assignments, selected.player, player)) {
+      // Invalid swap — flash by deselecting without swapping
+      setSelected(null);
+      return;
+    }
+
     swapInPeriod(periodIdx, selected.player, player);
     setSelected(null);
   }
 
-  function chip(periodIdx, player, position) {
+  function chip(periodIdx, player, position, assignments) {
     const isSelected = selected && selected.periodIdx === periodIdx && selected.player === player;
-    const isSwapTarget = selected && selected.periodIdx === periodIdx && selected.player !== player && position !== "keeper";
     const isFixed = position === "keeper";
+
+    // Is this a valid swap target?
+    const isSwapTarget = selected && selected.periodIdx === periodIdx && selected.player !== player && !isFixed;
+    const swapAllowed = isSwapTarget && isSwapAllowed(assignments, selected.player, player);
+    const swapBlocked = isSwapTarget && !swapAllowed;
+
     const c = POS_COLORS[position] || { bg: "#374151", text: "#fff" };
     const label = position === "verdediger" ? "verdediger" : position;
 
     return (
       <div
         key={player}
-        onClick={function() { handleTap(periodIdx, player, position); }}
+        onClick={function() { handleTap(periodIdx, player, position, assignments); }}
         style={{
           display: "flex", alignItems: "center", gap: 10,
-          background: isSelected ? (c.bg + "66") : isSwapTarget ? "rgba(250,204,21,0.15)" : (c.bg + "22"),
-          border: "2px solid " + (isSelected ? c.bg : isSwapTarget ? "#facc15" : c.bg + "55"),
+          background: isSelected ? (c.bg + "66") : swapAllowed ? "rgba(250,204,21,0.15)" : swapBlocked ? "rgba(239,68,68,0.1)" : (c.bg + "22"),
+          border: "2px solid " + (isSelected ? c.bg : swapAllowed ? "#facc15" : swapBlocked ? "#ef444488" : c.bg + "55"),
           borderRadius: 8, padding: "8px 12px",
           cursor: isFixed ? "default" : "pointer",
           transform: isSelected ? "scale(1.02)" : "scale(1)",
           transition: "all 0.15s",
           userSelect: "none",
           WebkitUserSelect: "none",
-          boxShadow: isSelected ? ("0 0 0 3px " + c.bg + "44") : isSwapTarget ? "0 0 0 2px #facc1544" : "none",
+          boxShadow: isSelected ? ("0 0 0 3px " + c.bg + "44") : swapAllowed ? "0 0 0 2px #facc1544" : "none",
+          opacity: swapBlocked ? 0.5 : 1,
         }}
       >
         <span style={{
@@ -687,12 +849,9 @@ function SwapSchema(props) {
           {POS_ICONS[position]} {label}
         </span>
         <span style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9", flex: 1 }}>{player}</span>
-        {isSelected && (
-          <span style={{ fontSize: 18, marginLeft: 4 }}>✏️</span>
-        )}
-        {isSwapTarget && (
-          <span style={{ fontSize: 18, marginLeft: 4 }}>⇄</span>
-        )}
+        {isSelected && <span style={{ fontSize: 18, marginLeft: 4 }}>✏️</span>}
+        {swapAllowed && <span style={{ fontSize: 18, marginLeft: 4 }}>⇄</span>}
+        {swapBlocked && <span style={{ fontSize: 14, marginLeft: 4, color: "#ef4444" }}>✕</span>}
         {!isFixed && !isSelected && !isSwapTarget && (
           <span style={{ fontSize: 12, color: "#475569", marginLeft: 4 }}>tap</span>
         )}
@@ -705,6 +864,8 @@ function SwapSchema(props) {
     const middenvelders = Object.entries(p.assignments).filter(function(e) { return e[1] === "middenvelder"; }).map(function(e) { return e[0]; });
     const spitsen = Object.entries(p.assignments).filter(function(e) { return e[1] === "spits"; }).map(function(e) { return e[0]; });
     const hasSelection = selected && selected.periodIdx === periodIdx;
+
+    function c(player, position) { return chip(periodIdx, player, position, p.assignments); }
 
     return (
       <div key={p.period} style={{
@@ -729,17 +890,17 @@ function SwapSchema(props) {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {chip(periodIdx, p.keeper, "keeper")}
+          {c(p.keeper, "keeper")}
           <div style={{ display: "flex", gap: 8 }}>
-            {verdedigers.map(function(pl) { return <div key={pl} style={{ flex: 1 }}>{chip(periodIdx, pl, "verdediger")}</div>; })}
+            {verdedigers.map(function(pl) { return <div key={pl} style={{ flex: 1 }}>{c(pl, "verdediger")}</div>; })}
           </div>
-          {middenvelders.map(function(pl) { return chip(periodIdx, pl, "middenvelder"); })}
+          {middenvelders.map(function(pl) { return c(pl, "middenvelder"); })}
           <div style={{ display: "flex", gap: 8 }}>
-            {spitsen.map(function(pl) { return <div key={pl} style={{ flex: 1 }}>{chip(periodIdx, pl, "spits")}</div>; })}
+            {spitsen.map(function(pl) { return <div key={pl} style={{ flex: 1 }}>{c(pl, "spits")}</div>; })}
           </div>
           {p.subs && p.subs.length > 0 && (
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
-              {p.subs.map(function(s) { return chip(periodIdx, s, "wissel"); })}
+              {p.subs.map(function(s) { return c(s, "wissel"); })}
             </div>
           )}
         </div>
@@ -850,10 +1011,16 @@ function SwapSchema(props) {
 
       <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
         <Btn variant="blue" flex={1} onClick={onRegenerate}>Opnieuw</Btn>
-        <Btn variant="success" flex={1} onClick={onExport} disabled={exporting}>
-          {exporting ? "Bezig..." : "📸 Exporteer"}
+        <Btn variant="success" flex={2} onClick={onSave}>
+          {saveMsg ? ("✅ " + saveMsg) : "💾 Bevestig & sla op"}
         </Btn>
         <Btn variant="secondary" flex={1} onClick={onReset}>Nieuw</Btn>
+      </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+        <Btn variant="secondary" flex={1} onClick={onShowSaved}>📋 Opgeslagen wedstrijden</Btn>
+        <Btn variant="secondary" flex={1} onClick={onExport} disabled={exporting}>
+          {exporting ? "Bezig..." : "📸 PNG"}
+        </Btn>
       </div>
     </div>
   );
@@ -880,9 +1047,9 @@ function App() {
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
-        const wb = XLSX.read(e.target.result, { type: "array" });
+        const wb = XLSX_LIB.read(e.target.result, { type: "array" });
         const sheet = wb.Sheets[wb.SheetNames[0]];
-        const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+        const raw = XLSX_LIB.utils.sheet_to_json(sheet, { header: 1, defval: null });
         const firstRow = raw[0] || [];
         const isNew = firstRow.some(function(c) { return typeof c === "string" && c.toLowerCase().includes("speler"); });
         setDetectedFormat(isNew ? "nieuw" : "origineel");
@@ -935,6 +1102,62 @@ function App() {
   }
 
   const [exportDataUrl, setExportDataUrl] = useState(null);
+  const [savedMatches, setSavedMatches] = useState([]);
+  const [saveMsg, setSaveMsg] = useState("");
+  const [storageLoaded, setStorageLoaded] = useState(false);
+
+  if (!storageLoaded) {
+    setStorageLoaded(true);
+    try {
+      (function() {
+        try {
+          var v = localStorage.getItem("jo9:wedstrijden");
+          if (v) setSavedMatches(JSON.parse(v));
+        } catch(e) {}
+      })();
+    } catch(e) {}
+  }
+
+  function doSave() {
+    if (!schema) return;
+    const datum = matchDate || new Date().toISOString().slice(0, 10);
+    const datumLabel = (function() {
+      var d = new Date(datum + "T12:00");
+      return String(d.getDate()).padStart(2,"0") + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + d.getFullYear();
+    })();
+    const entry = {
+      id: Date.now(),
+      datum: datum,
+      datumLabel: datumLabel,
+      aanwezig: aanwezig.slice(),
+      keepers: keepers.slice(),
+      schema: schema,
+    };
+    const updated = savedMatches.filter(function(m) { return m.datum !== datum; }).concat([entry]);
+    updated.sort(function(a, b) { return a.datum < b.datum ? -1 : 1; });
+    setSavedMatches(updated);
+    try {
+      try { localStorage.setItem("jo9:wedstrijden", JSON.stringify(updated)); } catch(e) {}
+    } catch(e) {}
+    setSaveMsg("Opgeslagen!");
+    setTimeout(function() { setSaveMsg(""); }, 2000);
+  }
+
+  function loadMatch(match) {
+    setAanwezig(match.aanwezig);
+    setKeepers(match.keepers);
+    setSchema(match.schema);
+    setMatchDate(match.datum);
+    setStep("schema");
+  }
+
+  function deleteMatch(id) {
+    const updated = savedMatches.filter(function(m) { return m.id !== id; });
+    setSavedMatches(updated);
+    try {
+      try { localStorage.setItem("jo9:wedstrijden", JSON.stringify(updated)); } catch(e) {}
+    } catch(e) {}
+  }
 
   function doExport() {
     if (!schema) return;
@@ -944,35 +1167,37 @@ function App() {
       const dataUrl = canvas.toDataURL("image/png");
       const dateStr = matchDate ? matchDate.replace(/-/g, "") : new Date().toISOString().slice(0, 10).replace(/-/g, "");
       const filename = "JO9-2_schema_" + dateStr + ".png";
-
-      // Try File System Access API first (lets user pick save location)
-      if (window.showSaveFilePicker) {
-        canvas.toBlob(function(blob) {
-          window.showSaveFilePicker({
-            suggestedName: filename,
-            types: [{ description: "PNG afbeelding", accept: { "image/png": [".png"] } }],
-          }).then(function(fileHandle) {
-            return fileHandle.createWritable();
-          }).then(function(writable) {
-            return writable.write(blob).then(function() { return writable.close(); });
-          }).then(function() {
-            setExporting(false);
-          }).catch(function(err) {
-            if (err.name !== "AbortError") {
-              // Fallback: show modal
-              setExportDataUrl({ url: dataUrl, filename: filename });
-            }
-            setExporting(false);
-          });
-        }, "image/png");
-      } else {
-        // Fallback: show modal with the image
-        setExportDataUrl({ url: dataUrl, filename: filename });
-        setExporting(false);
-      }
+      setExportDataUrl({ url: dataUrl, filename: filename });
     } catch(e) {
       alert("Export mislukt: " + e.message);
-      setExporting(false);
+    }
+    setExporting(false);
+  }
+
+  function doExportXlsx() {
+    if (!schema) return;
+    try {
+      const wb = exportSchemaAsXlsx(schema, aanwezig, matchDate, history);
+      const dateStr = matchDate ? matchDate.replace(/-/g, "") : new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const filename = "Wisselschema_Geschiedenis_" + dateStr + ".xlsx";
+      if (window.showSaveFilePicker) {
+        const wbout = XLSX_LIB.write(wb, { bookType: "xlsx", type: "array" });
+        const blob = new Blob([wbout], { type: "application/octet-stream" });
+        window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "Excel bestand", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] } }],
+        }).then(function(fileHandle) {
+          return fileHandle.createWritable();
+        }).then(function(writable) {
+          return writable.write(blob).then(function() { return writable.close(); });
+        }).catch(function(err) {
+          if (err.name !== "AbortError") XLSX_LIB.writeFile(wb, filename);
+        });
+      } else {
+        XLSX_LIB.writeFile(wb, filename);
+      }
+    } catch(e) {
+      alert("Excel export mislukt: " + e.message);
     }
   }
 
@@ -987,14 +1212,26 @@ function App() {
     }}>
       <div style={{
         background: "linear-gradient(90deg,#1e40af,#1d4ed8,#2563eb)",
-        padding: "18px 24px 14px", borderBottom: "3px solid #f59e0b",
+        padding: "14px 20px", borderBottom: "3px solid #f59e0b",
         display: "flex", alignItems: "center", gap: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
       }}>
-        <span style={{ fontSize: 34 }}>⚽</span>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>JO9-2 Wisselschema</div>
-          <div style={{ fontSize: 12, color: "#93c5fd", marginTop: 1 }}>Automatisch - Eerlijk - Historisch onderbouwd</div>
+        <span style={{ fontSize: 30 }}>⚽</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>JO9-2 Wisselschema</div>
+          <div style={{ fontSize: 11, color: "#93c5fd", marginTop: 1 }}>Automatisch - Eerlijk - Historisch onderbouwd</div>
         </div>
+        <button
+          onClick={function() { setStep("opgeslagen"); }}
+          style={{
+            padding: "8px 14px", borderRadius: 10, cursor: "pointer",
+            background: step === "opgeslagen" ? "rgba(245,158,11,0.3)" : "rgba(255,255,255,0.1)",
+            border: "1px solid " + (step === "opgeslagen" ? "#f59e0b" : "rgba(255,255,255,0.2)"),
+            color: step === "opgeslagen" ? "#fbbf24" : "#e2e8f0",
+            fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          💾 <span style={{ display: savedMatches.length > 0 ? "inline" : "none" }}>{savedMatches.length}</span> Opgeslagen
+        </button>
       </div>
 
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "24px 16px" }}>
@@ -1182,14 +1419,19 @@ function App() {
                 const newAssign = Object.assign({}, p.assignments);
                 const posA = newAssign[playerA];
                 const posB = newAssign[playerB];
-                // Enforce Bastiaan must be verdediger: block swaps that would break this
-                if (playerA === "Bastiaan" && posB !== "verdediger") return p;
-                if (playerB === "Bastiaan" && posA !== "verdediger") return p;
                 newAssign[playerA] = posB;
                 newAssign[playerB] = posA;
-                // Recalculate subs from assignments
-                const newSubs = p.subs.slice();
-                return Object.assign({}, p, { assignments: newAssign, subs: newSubs });
+                // Update p.keeper if one of the swapped players is the keeper
+                var newKeeper = p.keeper;
+                if (playerA === p.keeper) newKeeper = playerB;
+                else if (playerB === p.keeper) newKeeper = playerA;
+                // Update p.subs if one of the swapped players is a sub
+                var newSubs = p.subs.map(function(s) {
+                  if (s === playerA) return playerB;
+                  if (s === playerB) return playerA;
+                  return s;
+                });
+                return Object.assign({}, p, { assignments: newAssign, keeper: newKeeper, subs: newSubs });
               });
             });
           }
@@ -1206,11 +1448,58 @@ function App() {
               swapInPeriod={swapInPeriod}
               onRegenerate={function() { setSchema(generateSchema(aanwezig, keepers, history)); }}
               onExport={doExport}
+              onExportXlsx={doExportXlsx}
               exporting={exporting}
+              onSave={doSave}
+              saveMsg={saveMsg}
+              onShowSaved={function() { setStep("opgeslagen"); }}
               onReset={reset}
             />
           );
         })()}
+
+        {step === "opgeslagen" && (
+          <div>
+            <Card>
+              <SectionTitle icon="💾" title="Opgeslagen wedstrijden"
+                sub={savedMatches.length === 0 ? "Nog geen wedstrijden opgeslagen" : savedMatches.length + " wedstrijd" + (savedMatches.length !== 1 ? "en" : "") + " opgeslagen"} />
+              {savedMatches.length === 0 && (
+                <div style={{ color: "#475569", fontSize: 13, textAlign: "center", padding: "20px 0" }}>
+                  Genereer een schema en klik op "Bevestig &amp; sla op" om een wedstrijd op te slaan.
+                </div>
+              )}
+              {savedMatches.slice().reverse().map(function(match) {
+                return (
+                  <div key={match.id} style={{
+                    background: "rgba(255,255,255,0.04)", borderRadius: 10, padding: "12px 14px",
+                    marginBottom: 10, border: "1px solid rgba(255,255,255,0.08)",
+                    display: "flex", alignItems: "center", gap: 12,
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "#f1f5f9" }}>{match.datumLabel}</div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                        {match.aanwezig.join(", ")}
+                      </div>
+                    </div>
+                    <button onClick={function() { loadMatch(match); }} style={{
+                      padding: "7px 14px", borderRadius: 8, cursor: "pointer",
+                      background: "rgba(29,78,216,0.3)", border: "1px solid rgba(59,130,246,0.4)",
+                      color: "#93c5fd", fontWeight: 600, fontSize: 13,
+                    }}>Bekijk</button>
+                    <button onClick={function() { deleteMatch(match.id); }} style={{
+                      padding: "7px 10px", borderRadius: 8, cursor: "pointer",
+                      background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
+                      color: "#f87171", fontWeight: 600, fontSize: 13,
+                    }}>✕</button>
+                  </div>
+                );
+              })}
+            </Card>
+            <Btn variant="secondary" onClick={function() { setStep(schema ? "schema" : "history"); }}>
+              {schema ? "Terug naar schema" : "Terug"}
+            </Btn>
+          </div>
+        )}
       </div>
 
       {exportDataUrl && (
@@ -1271,11 +1560,7 @@ function App() {
   );
 }
 
-
-    // Mount the app
-    const container = document.getElementById("root");
-    const root = ReactDOM.createRoot(container);
-    root.render(React.createElement(App));
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
   </script>
 </body>
 </html>
