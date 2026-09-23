@@ -127,6 +127,12 @@ body::before {
   max-width: 1280px;
   margin: 0 auto;
 }
+.topbar-missie-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+}
 .topbar-team { font-weight: 600; }
 .topbar-code {
   font-family: monospace;
@@ -150,6 +156,7 @@ body::before {
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 16px;
+  margin-left: auto;
 }
 .mute-btn[aria-pressed="true"] { border-color: var(--accent); }
 

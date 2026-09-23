@@ -41,7 +41,7 @@ function showScreen(name) {
 }
 
 function showTopbar(team) {
-  document.getElementById("topbar").hidden = false;
+  document.getElementById("topbar-missie-info").hidden = false;
   document.getElementById("topbar-team").textContent = team.teamName;
   document.getElementById("topbar-code").textContent = team.resumeCode;
 }

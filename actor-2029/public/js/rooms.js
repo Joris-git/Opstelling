@@ -39,6 +39,7 @@ function createDial({ label, value, knobStanden, knobLabels, onChange, sound }) 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "dial-tick";
+    btn.tabIndex = -1;
     btn.style.left = `${p.x}px`;
     btn.style.top = `${p.y}px`;
     btn.title = knobLabels[stand];
