@@ -8,7 +8,7 @@ import {
 } from "./storage.js";
 import { createCountdown, formatTime } from "./timer.js";
 import * as sound from "./sound.js";
-import { debounce } from "./util.js";
+import { debounce, countWords } from "./util.js";
 import { roomDefs } from "./rooms.js";
 import { renderKluisLoading, renderKluisResult, renderKluisError, downloadPosterAsPng } from "./kluis.js";
 
@@ -322,9 +322,44 @@ async function enterRoom(n) {
     if (n < 4) {
       transitionTo(() => enterRoom(n + 1));
     } else {
-      transitionTo(() => enterKluis());
+      transitionTo(() => enterTijdcapsule());
     }
   };
+}
+
+function updateTijdcapsuleCounter() {
+  const input = document.getElementById("tijdcapsule-input");
+  const counter = document.getElementById("tijdcapsule-counter");
+  const n = countWords(input.value);
+  counter.textContent = `${n} van 50 woorden`;
+  counter.classList.toggle("over-limiet", n > 50);
+}
+
+function wireTijdcapsuleScreen() {
+  const input = document.getElementById("tijdcapsule-input");
+  input.addEventListener("input", updateTijdcapsuleCounter);
+
+  document.getElementById("btn-tijdcapsule-verder").addEventListener("click", async () => {
+    const btn = document.getElementById("btn-tijdcapsule-verder");
+    btn.disabled = true;
+    try {
+      const res = await API.saveTijdcapsule(state.team.id, input.value.trim());
+      state.team = res.team;
+    } catch (e) {
+      /* opslaan mislukt: toch doorgaan */
+    }
+    btn.disabled = false;
+    transitionTo(() => enterKluis());
+  });
+}
+
+function enterTijdcapsule() {
+  stopCurrentTimer();
+  document.body.dataset.theme = "tijdcapsule";
+  showScreen("tijdcapsule");
+  const input = document.getElementById("tijdcapsule-input");
+  input.value = state.team.tijdcapsule || "";
+  updateTijdcapsuleCounter();
 }
 
 async function enterKluis() {
@@ -369,6 +404,7 @@ async function init() {
   state.config = await API.getConfig();
   wireMuteButton();
   wireTeamnaamScreen();
+  wireTijdcapsuleScreen();
 
   const path = window.location.pathname;
   const hervatMatch = path.match(/^\/hervat\/(.+)$/);
@@ -402,6 +438,8 @@ async function init() {
     startTotalTimer(team);
     if (team.currentRoom >= 1 && team.currentRoom <= 4) {
       enterRoom(team.currentRoom);
+    } else if (!team.futureImage && (team.tijdcapsule === null || team.tijdcapsule === undefined)) {
+      enterTijdcapsule();
     } else {
       enterKluis();
     }

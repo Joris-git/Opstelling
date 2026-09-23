@@ -43,6 +43,14 @@ db.exec(`
   );
 `);
 
+function ensureColumn(table, column, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+ensureColumn("teams", "tijdcapsule", "TEXT");
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -119,6 +127,7 @@ function parseTeamRow(row) {
     futureImage: row.future_image ? JSON.parse(row.future_image) : null,
     futureGeneratedAt: row.future_generated_at,
     futureSource: row.future_source,
+    tijdcapsule: row.tijdcapsule,
   };
 }
 
@@ -179,6 +188,15 @@ function completeRoom(id, roomNumber) {
   return getTeamById(id);
 }
 
+function saveTijdcapsule(id, tekst) {
+  db.prepare(`UPDATE teams SET tijdcapsule = ?, updated_at = ? WHERE id = ?`).run(
+    tekst,
+    nowIso(),
+    id
+  );
+  return getTeamById(id);
+}
+
 function saveFutureImage(id, image, source) {
   db.prepare(`
     UPDATE teams SET future_image = ?, future_generated_at = ?, future_source = ?, updated_at = ?
@@ -205,6 +223,7 @@ module.exports = {
   startRoom,
   saveRoomAnswers,
   completeRoom,
+  saveTijdcapsule,
   saveFutureImage,
   deleteTeam,
   deleteTestTeams,

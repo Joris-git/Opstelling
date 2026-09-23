@@ -85,6 +85,13 @@ router.post("/:id/room/:roomNumber/save", (req, res) => {
   res.json({ team });
 });
 
+router.post("/:id/tijdcapsule", (req, res) => {
+  const tekst = clampString(req.body && req.body.tekst, 400);
+  const team = db.saveTijdcapsule(req.params.id, tekst);
+  if (!team) return res.status(404).json({ error: "Team niet gevonden." });
+  res.json({ team });
+});
+
 router.post("/:id/room/:roomNumber/complete", (req, res) => {
   const roomNumber = Number(req.params.roomNumber);
   if (![1, 2, 3, 4].includes(roomNumber)) return res.status(400).json({ error: "Ongeldige kamer." });

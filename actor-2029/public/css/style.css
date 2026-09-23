@@ -45,6 +45,7 @@ body[data-theme="kamer2"] { --room-color: var(--kamer2); }
 body[data-theme="kamer3"] { --room-color: var(--kamer3); }
 body[data-theme="kamer4"] { --room-color: var(--kamer4); }
 body[data-theme="kluis"]  { --room-color: var(--kluis); }
+body[data-theme="tijdcapsule"] { --room-color: #22d3ee; }
 
 button, input, textarea {
   font-family: inherit;
@@ -320,6 +321,19 @@ body::before {
   padding: 10px 12px;
   font-family: monospace;
   font-size: 13px;
+}
+
+/* --- tijdcapsule --- */
+
+.tijdcapsule-panel textarea {
+  width: 100%;
+  background: #0b1220;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  resize: vertical;
+  margin-top: 6px;
 }
 
 /* --- transition overlay --- */

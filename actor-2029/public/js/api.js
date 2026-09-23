@@ -41,6 +41,7 @@ const API = {
   saveRoom: (id, roomNumber, answers) =>
     postJSON(`/api/team/${id}/room/${roomNumber}/save`, { answers }),
   completeRoom: (id, roomNumber) => postJSON(`/api/team/${id}/room/${roomNumber}/complete`, {}),
+  saveTijdcapsule: (id, tekst) => postJSON(`/api/team/${id}/tijdcapsule`, { tekst }),
   genereerToekomstbeeld: (id, opts = {}) =>
     postJSON(`/api/ai/toekomstbeeld/${id}`, {}, { timeoutMs: opts.timeoutMs || 65000 }),
 };
