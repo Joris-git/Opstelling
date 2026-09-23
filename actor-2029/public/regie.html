@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280, initial-scale=1.0" />
+  <title>Actor 2029 — Regie</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305060a'/%3E%3Cpolygon points='16,6 26,26 21,26 18,19 14,19 11,26 6,26' fill='%23972345'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/regie.css" />
+</head>
+<body data-theme="kluis">
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <div id="login-scherm" class="regie-login">
+    <div class="panel">
+      <h1>Regie</h1>
+      <p class="panel-intro">Voer het wachtwoord in om het live overzicht te bekijken.</p>
+      <input type="password" id="login-wachtwoord" placeholder="Wachtwoord" autocomplete="current-password" />
+      <button type="button" class="btn-primary btn-large" id="btn-login">Inloggen</button>
+      <p class="regie-foutmelding" id="login-fout" hidden></p>
+    </div>
+  </div>
+
+  <div id="regie-app" class="regie-app" hidden>
+    <header class="regie-header">
+      <h1>Actor 2029 — Regie</h1>
+      <nav class="regie-tabs">
+        <button type="button" class="regie-tab is-actief" data-tab="overzicht">Live overzicht</button>
+        <button type="button" class="regie-tab" data-tab="vergelijking">Vergelijking</button>
+        <button type="button" class="regie-tab" data-tab="gezamenlijk">Gezamenlijk toekomstbeeld</button>
+        <button type="button" class="regie-tab" data-tab="export">Export</button>
+      </nav>
+      <button type="button" class="btn-secondary" id="btn-logout">Uitloggen</button>
+    </header>
+
+    <section class="regie-paneel" data-paneel="overzicht">
+      <table class="regie-tabel">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Hervatcode</th>
+            <th>Kamer</th>
+            <th>Bezig sinds</th>
+            <th>Toekomstbeeld</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="teams-tbody"></tbody>
+      </table>
+      <p class="regie-leeg" id="teams-leeg" hidden>Nog geen teams gestart.</p>
+    </section>
+
+    <section class="regie-paneel" data-paneel="vergelijking" hidden>
+      <div id="vergelijking-inhoud"></div>
+    </section>
+
+    <section class="regie-paneel" data-paneel="gezamenlijk" hidden>
+      <button type="button" class="btn-primary btn-large" id="btn-gezamenlijk-maken">Maak het gezamenlijke toekomstbeeld</button>
+      <div id="gezamenlijk-inhoud"></div>
+    </section>
+
+    <section class="regie-paneel" data-paneel="export" hidden>
+      <p class="panel-intro">Download alle gegevens van alle teams.</p>
+      <div class="export-links">
+        <a href="/api/admin/export.csv" class="btn-secondary">Download CSV</a>
+        <a href="/api/admin/export.json" class="btn-secondary">Download JSON</a>
+      </div>
+    </section>
+  </div>
+
+  <div id="beamer-overlay" class="beamer-overlay" hidden>
+    <button type="button" id="beamer-sluiten" class="btn-secondary beamer-sluiten">Sluiten</button>
+    <button type="button" id="beamer-fullscreen" class="btn-secondary beamer-fullscreen">Volledig scherm</button>
+    <div id="beamer-poster" class="kluis-poster beamer-poster"></div>
+  </div>
+
+  <script type="module" src="/js/admin.js"></script>
+</body>
+</html>

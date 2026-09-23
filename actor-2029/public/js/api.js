@@ -13,6 +13,12 @@ async function getJSON(url) {
   return r.json();
 }
 
+async function deleteJSON(url) {
+  const r = await fetch(url, { method: "DELETE" });
+  if (!r.ok) throw await errorFrom(r);
+  return r.json();
+}
+
 async function postJSON(url, body, opts = {}) {
   const controller = new AbortController();
   const timeoutMs = opts.timeoutMs;
@@ -44,6 +50,16 @@ const API = {
   saveTijdcapsule: (id, tekst) => postJSON(`/api/team/${id}/tijdcapsule`, { tekst }),
   genereerToekomstbeeld: (id, opts = {}) =>
     postJSON(`/api/ai/toekomstbeeld/${id}`, {}, { timeoutMs: opts.timeoutMs || 65000 }),
+};
+
+export const AdminAPI = {
+  login: (password) => postJSON("/api/admin/login", { password }),
+  logout: () => postJSON("/api/admin/logout", {}),
+  check: () => getJSON("/api/admin/check"),
+  getTeams: () => getJSON("/api/admin/teams"),
+  deleteTeam: (id) => deleteJSON(`/api/admin/teams/${id}`),
+  getGezamenlijk: () => getJSON("/api/admin/gezamenlijk-toekomstbeeld"),
+  maakGezamenlijk: () => postJSON("/api/admin/gezamenlijk-toekomstbeeld", {}, { timeoutMs: 65000 }),
 };
 
 export default API;

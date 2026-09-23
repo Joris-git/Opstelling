@@ -1,5 +1,5 @@
 const Anthropic = require("@anthropic-ai/sdk");
-const { buildPrompt, SYSTEM_PROMPT } = require("./aiPrompt");
+const { buildPrompt, buildGezamenlijkPrompt, SYSTEM_PROMPT } = require("./aiPrompt");
 const { sanitizeSvg } = require("./svgSanitize");
 const { clampString } = require("./validate");
 
@@ -65,12 +65,11 @@ function withTimeout(promise, ms, message) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
 }
 
-async function genereerToekomstbeeldMetAI(team, { timeoutMs = 60000 } = {}) {
+async function roepClaudeAanMetTool(prompt, { timeoutMs, standaardKop }) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("Geen ANTHROPIC_API_KEY ingesteld.");
 
   const client = new Anthropic({ apiKey, timeout: timeoutMs, maxRetries: 0 });
-  const prompt = buildPrompt(team);
 
   const call = client.messages.create({
     model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
@@ -97,7 +96,7 @@ async function genereerToekomstbeeldMetAI(team, { timeoutMs = 60000 } = {}) {
   }
 
   return {
-    kop: clampString(raw.kop, 200) || `Actor in 2029: ${team.teamName}`,
+    kop: clampString(raw.kop, 200) || standaardKop,
     scene: clampString(raw.scene, 1600),
     artefact: clampString(raw.artefact, 500),
     route: normaliseerRoute(raw.route),
@@ -106,4 +105,14 @@ async function genereerToekomstbeeldMetAI(team, { timeoutMs = 60000 } = {}) {
   };
 }
 
-module.exports = { genereerToekomstbeeldMetAI };
+async function genereerToekomstbeeldMetAI(team, { timeoutMs = 60000 } = {}) {
+  const prompt = buildPrompt(team);
+  return roepClaudeAanMetTool(prompt, { timeoutMs, standaardKop: `Actor in 2029: ${team.teamName}` });
+}
+
+async function genereerGezamenlijkToekomstbeeldMetAI(teams, { timeoutMs = 60000 } = {}) {
+  const prompt = buildGezamenlijkPrompt(teams);
+  return roepClaudeAanMetTool(prompt, { timeoutMs, standaardKop: "Actor in 2029" });
+}
+
+module.exports = { genereerToekomstbeeldMetAI, genereerGezamenlijkToekomstbeeldMetAI };

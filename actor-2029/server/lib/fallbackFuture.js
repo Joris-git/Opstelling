@@ -145,4 +145,62 @@ function buildFallbackFuture(team, gameData) {
   return { kop, scene, artefact, route, grens, svg };
 }
 
-module.exports = { buildFallbackFuture, escapeXml };
+function buildFallbackGezamenlijk(teams, gameData) {
+  const bruikbareTeams = teams.filter(
+    (t) => t.room1.answers || t.room2.answers || t.room3.answers || t.room4.answers
+  );
+  const n = bruikbareTeams.length || teams.length;
+
+  const woordCounts = {};
+  bruikbareTeams.forEach((t) => {
+    const woorden = (t.room4 && t.room4.answers && t.room4.answers.woorden) || [];
+    woorden.forEach((w) => {
+      woordCounts[w] = (woordCounts[w] || 0) + 1;
+    });
+  });
+  const topWoorden = Object.entries(woordCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([w]) => w);
+
+  const toekomstCounts = {};
+  bruikbareTeams.forEach((t) => {
+    const f = t.room2 && t.room2.answers && t.room2.answers.toekomst;
+    if (f) toekomstCounts[f] = (toekomstCounts[f] || 0) + 1;
+  });
+  const meestGekozenFloor = Object.entries(toekomstCounts).sort((a, b) => b[1] - a[1])[0];
+  const toekomstLabel = meestGekozenFloor ? LIFT_LABELS[meestGekozenFloor[0]] : "meesterschap";
+
+  const kop = `${n} teams bij Actor kiezen richting ${toekomstLabel.toLowerCase()} in 2029`;
+
+  const scene = `Alle ${n} teams stapten dezelfde escaperoom uit, maar niet met hetzelfde verhaal. De een zag Actor in 2029 als een plek waar AI het meeste voorwerk doet; de ander bleef genuanceerder. Wat opvalt: bijna iedereen noemt ${topWoorden.length ? topWoorden.join(", ") : "eenzelfde soort woorden"} als sfeer voor de toekomst — dat is geen toeval. De verschillen zitten 'm niet in de richting, maar in het tempo: sommigen willen morgen beginnen, anderen eerst de basis op orde. Precies die spanning maakt 2029 interessant: geen uniforme koers van bovenaf, maar meerdere teams die vanuit hun eigen werk naar hetzelfde punt toe bewegen.`;
+
+  const artefact = `Interne notitie, gedeeld na de sessie: "${n} teams, evenveel routes, één richting: ${toekomstLabel.toLowerCase()}. Verschillen zijn geen probleem — ze zijn de planning."`;
+
+  const route = [
+    {
+      titel: "Binnen 3 maanden",
+      actie: "De losse experimenten van alle teams worden gedeeld op één centrale plek.",
+    },
+    {
+      titel: "2027",
+      actie: `De teams die voorop lopen richting ${toekomstLabel.toLowerCase()} trekken de rest mee.`,
+    },
+    {
+      titel: "2029",
+      actie: `Actor werkt organisatiebreed op het niveau ${toekomstLabel.toLowerCase()}, in ieders eigen tempo gegroeid.`,
+    },
+  ];
+
+  const grens = "Het gesprek over wát we willen, blijft altijd van de mensen die het samen bepalen.";
+
+  const svg = buildFallbackSvg(
+    { room4: { answers: { woorden: topWoorden } }, room2: { answers: { nu: "verkennen", toekomst: meestGekozenFloor ? meestGekozenFloor[0] : "meesterschap" } } },
+    kop,
+    artefact
+  );
+
+  return { kop, scene, artefact, route, grens, svg };
+}
+
+module.exports = { buildFallbackFuture, buildFallbackGezamenlijk, escapeXml };

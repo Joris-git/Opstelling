@@ -1,4 +1,4 @@
-import { escapeHtml } from "./util.js";
+import { posterHtml } from "./poster.js";
 
 export function renderKluisLoading(container) {
   container.innerHTML = `
@@ -20,30 +20,10 @@ export function renderKluisError(container, { onRetry }) {
 }
 
 export function renderKluisResult(container, image, { source, onFullscreen, onDownloadPng, onPrint, onRetry }) {
-  const routeHtml = (image.route || [])
-    .map(
-      (stap) => `
-        <div class="route-stap">
-          <h4>${escapeHtml(stap.titel)}</h4>
-          <p>${escapeHtml(stap.actie)}</p>
-        </div>`
-    )
-    .join("");
-
   container.innerHTML = `
     <div class="kluis-result">
       <div class="kluis-poster" id="kluis-poster">
-        <div class="poster-svg">${image.svg}</div>
-        <div class="poster-tekst">
-          <h2>${escapeHtml(image.kop)}</h2>
-          <p class="poster-scene">${escapeHtml(image.scene)}</p>
-          <div class="poster-artefact">
-            <strong>Artefact uit 2029</strong>
-            <p>${escapeHtml(image.artefact)}</p>
-          </div>
-          <div class="poster-route">${routeHtml}</div>
-          <p class="poster-grens"><em>${escapeHtml(image.grens)}</em></p>
-        </div>
+        ${posterHtml(image)}
       </div>
       <div class="kluis-acties">
         <button type="button" class="btn-primary" id="btn-fullscreen">Volledig scherm</button>

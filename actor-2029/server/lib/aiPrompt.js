@@ -1,4 +1,4 @@
-const { KNOB_LABELS, STELLINGEN, LIFT_LABELS, ARCHIEF_KEUZE_LABELS } = require("./gameData");
+const { KNOB_LABELS, KNOB_STANDEN, STELLINGEN, LIFT_LABELS, ARCHIEF_KEUZE_LABELS } = require("./gameData");
 
 function lijst(items) {
   return items.map((x) => `- ${x}`).join("\n");
@@ -60,4 +60,90 @@ Schrijf in het Nederlands, stellig en warm, met een vleugje speelsheid. Geen jar
 
 Voor het veld "svg": lever een geldige, volledig zelfstandige SVG-illustratie met viewBox="0 0 800 450" en xmlns="http://www.w3.org/2000/svg". Gebruik alleen basisvormen (rect, circle, ellipse, line, polyline, polygon, path, text, tspan, g, defs, linearGradient, radialGradient, stop). Gebruik uitsluitend presentatie-attributen (fill, stroke, opacity, transform, enzovoort) — nooit een style-attribuut, nooit <style>-tags. Geen <script>, geen event-attributen (onload, onclick, enzovoort), geen externe verwijzingen (geen <image>, geen href naar iets buiten de SVG zelf). Ontwerp een sfeervolle, wat mysterieuze illustratie die past bij een donker, futuristisch controlecentrum — denk aan een gestileerde horizon, gloeiende accenten, abstracte vormen — passend bij de sfeerwoorden en de scène die je beschrijft.`;
 
-module.exports = { buildPrompt, SYSTEM_PROMPT };
+function buildGezamenlijkPrompt(teams) {
+  const bruikbareTeams = teams.filter(
+    (t) => t.room1.answers || t.room2.answers || t.room3.answers || t.room4.answers
+  );
+  const n = bruikbareTeams.length || teams.length;
+
+  const stellingenTekst = STELLINGEN.map((stelling, idx) => {
+    const counts = {};
+    KNOB_STANDEN.forEach((s) => {
+      counts[s] = 0;
+    });
+    bruikbareTeams.forEach((t) => {
+      const v = t.room1.answers && t.room1.answers[`knop${idx + 1}`];
+      if (v && counts[v] !== undefined) counts[v] += 1;
+    });
+    const samenvatting = KNOB_STANDEN.filter((s) => counts[s] > 0)
+      .map((s) => `${counts[s]}x ${KNOB_LABELS[s]}`)
+      .join(", ");
+    return `${idx + 1}. "${stelling}" → ${samenvatting || "geen antwoorden"}`;
+  }).join("\n");
+
+  const liftTekst = bruikbareTeams
+    .map((t) => {
+      const nu = t.room2.answers && t.room2.answers.nu ? LIFT_LABELS[t.room2.answers.nu] : "?";
+      const toekomst = t.room2.answers && t.room2.answers.toekomst ? LIFT_LABELS[t.room2.answers.toekomst] : "?";
+      return `${t.teamName}: van ${nu} naar ${toekomst}`;
+    })
+    .join("\n") || "geen antwoorden";
+
+  const remCounts = {};
+  bruikbareTeams.forEach((t) => {
+    const k = t.room3.answers && t.room3.answers.q3 && t.room3.answers.q3.keuze;
+    if (k) remCounts[k] = (remCounts[k] || 0) + 1;
+  });
+  const remTekst =
+    Object.entries(remCounts)
+      .map(([k, c]) => `${c}x ${ARCHIEF_KEUZE_LABELS[k]}`)
+      .join(", ") || "geen antwoorden";
+
+  const koppenTekst =
+    bruikbareTeams
+      .map((t) => `- ${t.teamName}: ${JSON.stringify((t.room3.answers && t.room3.answers.q5) || "(geen)")}`)
+      .join("\n") || "geen antwoorden";
+
+  const experimentenTekst =
+    bruikbareTeams
+      .map((t) => `- ${t.teamName}: ${JSON.stringify((t.room3.answers && t.room3.answers.q4) || "(geen)")}`)
+      .join("\n") || "geen antwoorden";
+
+  const woordCounts = {};
+  bruikbareTeams.forEach((t) => {
+    const woorden = (t.room4.answers && t.room4.answers.woorden) || [];
+    woorden.forEach((w) => {
+      woordCounts[w] = (woordCounts[w] || 0) + 1;
+    });
+  });
+  const woordenTekst =
+    Object.entries(woordCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([w, c]) => `${w} (${c}x)`)
+      .join(", ") || "geen antwoorden";
+
+  return `
+Dit is een groepsoverzicht van ${n} teams die de Actor 2029-escaperoom speelden. Maak op basis hiervan ÉÉN gezamenlijk toekomstbeeld dat laat zien waar de teams het over eens zijn én waar ze verschillen. Wees eerlijk over spanningen of verdeeldheid als die er zijn — dat maakt het interessanter.
+
+STELLINGEN (kamer 1) — verdeling van antwoorden per stelling:
+${stellingenTekst}
+
+POSITIE IN DE LIFT (kamer 2) — per team van-naar:
+${liftTekst}
+
+GROOTSTE REM (kamer 3, vraag 3) — verdeling:
+${remTekst}
+
+VOORGESTELDE KRANTENKOPPEN per team:
+${koppenTekst}
+
+VOORGESTELDE EERSTE EXPERIMENTEN (binnen 3 maanden) per team:
+${experimentenTekst}
+
+MEEST GEKOZEN SFEERWOORDEN (kamer 4), met aantal keer gekozen:
+${woordenTekst}
+
+Maak het gezamenlijke toekomstbeeld via het gereedschap "lever_toekomstbeeld". Benoem in de scène of het artefact gerust expliciet een punt van overeenstemming of van verschil tussen de teams. Geen jargon, geen AI-hype, geen namen van echte bestaande personen.`.trim();
+}
+
+module.exports = { buildPrompt, buildGezamenlijkPrompt, SYSTEM_PROMPT };

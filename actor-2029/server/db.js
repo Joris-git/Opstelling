@@ -41,6 +41,13 @@ db.exec(`
     future_generated_at TEXT,
     future_source TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS gezamenlijk_beeld (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    image TEXT NOT NULL,
+    generated_at TEXT NOT NULL,
+    source TEXT NOT NULL
+  );
 `);
 
 function ensureColumn(table, column, definition) {
@@ -214,6 +221,25 @@ function deleteTestTeams() {
   return info.changes;
 }
 
+function getGezamenlijkBeeld() {
+  const row = db.prepare("SELECT * FROM gezamenlijk_beeld WHERE id = 1").get();
+  if (!row) return null;
+  return {
+    image: JSON.parse(row.image),
+    generatedAt: row.generated_at,
+    source: row.source,
+  };
+}
+
+function saveGezamenlijkBeeld(image, source) {
+  db.prepare(`
+    INSERT INTO gezamenlijk_beeld (id, image, generated_at, source)
+    VALUES (1, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET image = excluded.image, generated_at = excluded.generated_at, source = excluded.source
+  `).run(JSON.stringify(image), nowIso(), source);
+  return getGezamenlijkBeeld();
+}
+
 module.exports = {
   db,
   createTeam,
@@ -227,4 +253,6 @@ module.exports = {
   saveFutureImage,
   deleteTeam,
   deleteTestTeams,
+  getGezamenlijkBeeld,
+  saveGezamenlijkBeeld,
 };

@@ -1,0 +1,77 @@
+.regie-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.regie-login input[type="password"] {
+  width: 100%;
+  background: #0b1220;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 15px;
+  margin: 14px 0;
+}
+.regie-foutmelding { color: #fecaca; margin-top: 10px; }
+
+.regie-app { padding: 24px 32px 60px; max-width: 1280px; margin: 0 auto; }
+.regie-header { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+.regie-header h1 { margin: 0; margin-right: auto; font-size: 20px; }
+.regie-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.regie-tab {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+.regie-tab.is-actief { border-color: var(--room-color); color: #fff; }
+
+.regie-paneel { margin-top: 10px; }
+.regie-leeg { color: var(--muted); margin-top: 16px; }
+
+.regie-tabel { width: 100%; border-collapse: collapse; }
+.regie-tabel th, .regie-tabel td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--panel-border); font-size: 14px; }
+.regie-tabel th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.regie-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); font-size: 12px; }
+.regie-tabel button { font-size: 13px; padding: 6px 12px; margin-right: 6px; }
+.regie-code { font-family: monospace; color: var(--muted); }
+
+.vergelijking-legenda { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 26px; }
+.legenda-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.legenda-kleur { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+
+.as-blok { margin-bottom: 32px; max-width: 760px; }
+.as-titel { font-size: 14px; margin-bottom: 14px; color: var(--text); }
+.as-track { position: relative; height: 50px; border-top: 1px solid var(--panel-border); border-bottom: 1px solid var(--panel-border); }
+.as-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+.as-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid #05060a;
+}
+
+.gezamenlijk-leeg { color: var(--muted); margin-top: 20px; }
+.gezamenlijk-poster-wrap { margin-top: 20px; max-width: 900px; }
+.gezamenlijk-poster-wrap .kluis-poster { border: 1px solid var(--panel-border); border-radius: var(--radius); overflow: hidden; }
+.gezamenlijk-acties { display: flex; gap: 10px; margin-top: 16px; }
+.gezamenlijk-bron { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+.export-links { display: flex; gap: 10px; margin-top: 16px; }
+
+.beamer-overlay {
+  position: fixed;
+  inset: 0;
+  background: #05060a;
+  z-index: 100;
+  overflow: auto;
+  padding: 80px 40px 40px;
+}
+.beamer-sluiten { position: fixed; top: 20px; right: 20px; z-index: 101; }
+.beamer-fullscreen { position: fixed; top: 20px; right: 130px; z-index: 101; }
+.beamer-poster { max-width: 1100px; margin: 0 auto; border: 1px solid var(--panel-border); border-radius: 10px; overflow: hidden; }
