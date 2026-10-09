@@ -1,0 +1,2178 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Plan samen een reis: route, verblijf, activiteiten en dagplanning, met stemmen en Claude als reisassistent.">
+<meta name="theme-color" content="#2348A6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%232348A6%22%2F%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2223%22%20r%3D%223%22%20fill%3D%22%23fff%22%2F%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%229%22%20r%3D%223%22%20fill%3D%22%23D7832F%22%2F%3E%3Cpath%20d%3D%22M13%2023h6a4%204%200%200%200%200-8h-6a4%204%200%200%201%200-8h6%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}img{max-width:100%}[hidden]{display:none!important}.scrim.rota-gate{z-index:90;align-items:center;justify-content:center}.sheet.rota-gate-sheet{height:auto;max-height:92%;border-radius:18px;margin:16px}body.rota-solo .top,body.rota-solo main,body.rota-solo #fab{display:none!important}body.rota-solo .scrim.rota-gate{background:transparent}</style>
+<title>Rota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: app shell — sticky header with azulejo band, tab bar (bottom on phone, top on desktop), one view at a time, slide-over sheet for detail. */
+:root{
+  --bg:#F3F6F7;          /* whitewash with a hint of Atlantic */
+  --surface:#FFFFFF;
+  --sunken:#E8EEF0;
+  --ink:#14232C;
+  --muted:#5A6B74;
+  --line:#D5DEE2;
+  --azulejo:#2348A6;     /* cobalt tile blue — primary */
+  --azulejo-soft:#E3E9F8;
+  --ochre:#D7832F;       /* Ponta da Piedade sandstone — accent */
+  --ochre-soft:#FBEBDB;
+  --sea:#0E7A83;         /* planned */
+  --sea-soft:#DDF1F2;
+  --ok:#2E7D4F;          /* booked */
+  --ok-soft:#DFF2E6;
+  --no:#B3412F;
+  --no-soft:#F8E1DC;
+  --shadow:0 1px 2px rgba(20,35,44,.06),0 6px 20px rgba(20,35,44,.06);
+  --f-display:"Young Serif",Georgia,"Times New Roman",serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E171C;--surface:#16222A;--sunken:#1D2C35;--ink:#E7EEF1;--muted:#93A6AF;--line:#2A3C46;
+  --azulejo:#7F9DF0;--azulejo-soft:#1E2B4D;--ochre:#EFA25A;--ochre-soft:#3A2814;
+  --sea:#4FC1C9;--sea-soft:#123437;--ok:#6CC892;--ok-soft:#163323;--no:#F08A78;--no-soft:#3C1E19;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E171C;--surface:#16222A;--sunken:#1D2C35;--ink:#E7EEF1;--muted:#93A6AF;--line:#2A3C46;
+  --azulejo:#7F9DF0;--azulejo-soft:#1E2B4D;--ochre:#EFA25A;--ochre-soft:#3A2814;
+  --sea:#4FC1C9;--sea-soft:#123437;--ok:#6CC892;--ok-soft:#163323;--no:#F08A78;--no-soft:#3C1E19;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--azulejo)}
+:focus-visible{outline:2px solid var(--azulejo);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;line-height:1.15}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.label{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg)}
+.tiles{height:10px;background-color:var(--azulejo);
+  background-image:
+    radial-gradient(circle at 50% 50%,var(--bg) 0 2px,transparent 2.5px),
+    linear-gradient(45deg,transparent 42%,var(--bg) 42% 58%,transparent 58%),
+    linear-gradient(-45deg,transparent 42%,var(--bg) 42% 58%,transparent 58%);
+  background-size:20px 10px;opacity:.9}
+.bar{max-width:1080px;margin:0 auto;padding:12px 16px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0;flex:1}
+.brand h1{font-size:24px;white-space:nowrap}
+.brand .tripname{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.crew{display:flex;align-items:center}
+.av{width:30px;height:30px;border-radius:50%;border:2px solid var(--bg);background:var(--sunken);object-fit:cover;flex:none;position:relative}
+.crew .avwrap{position:relative;margin-left:-8px}
+.crew .avwrap:first-child{margin-left:0}
+.crew .online::after{content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:var(--ok);border:2px solid var(--bg)}
+.crew .more{margin-left:6px;font-size:12.5px;color:var(--muted)}
+
+.tabs{max-width:1080px;margin:0 auto;padding:0 16px;display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;padding:10px 12px 11px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.tab svg{width:18px;height:18px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ochre)}
+.tab .count{background:var(--ochre);color:#fff;border-radius:999px;font-size:11px;padding:0 6px;line-height:17px}
+
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 120px}
+.view{display:flex;flex-direction:column;gap:20px}
+
+@media (max-width:720px){
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);border-bottom:0;max-width:none;justify-content:space-around;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+  .tab{flex-direction:column;gap:2px;font-size:11px;padding:6px 4px;border-bottom:0;border-top:2px solid transparent;position:relative;flex:1}
+  .tab[aria-selected="true"]{border-top-color:var(--ochre)}
+  .tab .count{position:absolute;top:2px;left:55%}
+  .brand h1{font-size:21px}
+}
+
+/* ---------- generic pieces ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn svg,.chip svg,.linkish svg{width:16px;height:16px;flex:none}
+.btn.primary{background:var(--azulejo);border-color:var(--azulejo);color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.voorstel{background:var(--ochre-soft);color:var(--ochre)}
+.pill.gepland{background:var(--sea-soft);color:var(--sea)}
+.pill.geboekt{background:var(--ok-soft);color:var(--ok)}
+.pill.afgevallen{background:var(--sunken);color:var(--muted)}
+.pill.claude{background:var(--azulejo-soft);color:var(--azulejo)}
+.cat{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);font-weight:500}
+.cat svg{width:14px;height:14px}
+.banner{border-radius:var(--r);padding:12px 14px;background:var(--azulejo-soft);color:var(--ink);display:flex;gap:10px;align-items:flex-start}
+.banner svg{flex:none;width:18px;height:18px;margin-top:2px;color:var(--azulejo)}
+.empty{padding:28px 18px;text-align:center;color:var(--muted);border:1.5px dashed var(--line);border-radius:var(--r)}
+.empty h3{color:var(--ink);font-size:18px;margin-bottom:4px}
+.section-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.section-h h2{font-size:22px}
+
+/* ---------- home ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.countdown{padding:20px;position:relative;overflow:hidden}
+.countdown .big{font-family:var(--f-display);font-size:56px;line-height:1;color:var(--azulejo)}
+.countdown .big small{font-size:20px;color:var(--ink);margin-left:6px}
+.countdown .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.countdown .meta div{min-width:0}
+.countdown .meta b{display:block;font-size:17px;font-weight:600}
+.countdown .cliff{position:absolute;right:-10px;bottom:-6px;width:170px;height:auto;opacity:.9;pointer-events:none}
+@media (max-width:480px){.countdown .cliff{width:110px;opacity:.45}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:14px}
+.stat b{font-family:var(--f-display);font-size:30px;line-height:1.1;display:block}
+.stat.s1 b{color:var(--ochre)}.stat.s2 b{color:var(--sea)}.stat.s3 b{color:var(--ok)}
+.budget{padding:14px;grid-column:1/-1}
+.meter{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden;margin-top:8px;display:flex}
+.meter i{display:block;height:100%}
+.home-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.home-grid{grid-template-columns:minmax(0,1fr)}}
+.todo-list,.feed{display:flex;flex-direction:column}
+.todo{display:flex;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.todo:first-child{border-top:0}
+.todo .t{flex:1;min-width:0}
+.todo .t>*{display:block;max-width:100%}
+.todo .t .linkish{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.todo .t b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed .item{display:flex;gap:10px;padding:10px 14px;border-top:1px solid var(--line);font-size:14px;align-items:flex-start}
+.feed .item:first-child{border-top:0}
+.feed .item .av{width:24px;height:24px;border:0}
+.feed .item .txt{min-width:0;flex:1}
+.feed .item .txt q{quotes:none;color:var(--muted)}
+.linkish{background:none;border:0;padding:0;color:var(--ink);font-weight:600;text-align:left;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.linkish:hover{text-decoration-color:var(--ink)}
+.climate{padding:14px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.climate div b{font-size:20px;font-weight:700;display:block}
+
+/* ---------- vote control ---------- */
+.vote{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.vote button{border:0;background:none;padding:5px 11px;font-size:13px;font-weight:600;color:var(--muted);display:flex;gap:5px;align-items:center}
+.vote button+button{border-left:1px solid var(--line)}
+.vote button[aria-pressed="true"].ja{background:var(--ok-soft);color:var(--ok)}
+.vote button[aria-pressed="true"].mis{background:var(--ochre-soft);color:var(--ochre)}
+.vote button[aria-pressed="true"].nee{background:var(--no-soft);color:var(--no)}
+.vote button:disabled{cursor:not-allowed}
+.tally{display:flex;height:5px;border-radius:9px;overflow:hidden;background:var(--sunken);min-width:60px}
+.tally i{display:block;height:100%}
+.tally .j{background:var(--ok)}.tally .m{background:var(--ochre)}.tally .n{background:var(--no)}
+
+/* ---------- board ---------- */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;min-width:0;flex:1}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;display:inline-flex;gap:6px;align-items:center;white-space:nowrap;color:var(--muted)}
+.chip svg{width:14px;height:14px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+select.sel{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.idea{display:flex;flex-direction:column;gap:10px;padding:14px;cursor:pointer;transition:border-color .15s,transform .15s}
+.idea:hover{border-color:var(--muted)}
+.idea.top1{border-color:var(--ochre)}
+.idea h3{font-size:18px}
+.idea .desc{color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.idea .foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:auto}
+.idea .facts{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.idea .facts span{display:inline-flex;gap:4px;align-items:center}
+.idea .facts svg{width:14px;height:14px}
+.idea.afgevallen{opacity:.6}
+.who{display:flex}
+.who .av{width:22px;height:22px;margin-left:-6px;border:2px solid var(--surface)}
+.who .av:first-child{margin-left:0}
+
+/* ---------- plan ---------- */
+.plan{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.plan{grid-template-columns:minmax(0,1fr)}}
+.pool{padding:12px;display:flex;flex-direction:column;gap:8px;position:sticky;top:120px}
+@media (max-width:820px){.pool{position:static}}
+.days{display:flex;flex-direction:column;gap:14px}
+.day{padding:0;overflow:hidden}
+.day-h{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sunken)}
+.day-h .dnum{font-family:var(--f-display);font-size:28px;line-height:1;color:var(--azulejo);min-width:34px}
+.day-h .dname{font-weight:700}
+.slot{display:flex;gap:12px;padding:10px 14px;border-top:1px solid var(--line);align-items:center;cursor:pointer}
+.slot:first-of-type{border-top:0}
+.slot:hover{background:var(--sunken)}
+.slot .time{font-weight:700;width:46px;flex:none;font-variant-numeric:tabular-nums;color:var(--muted)}
+.slot .what{flex:1;min-width:0}
+.slot .what b{display:block;font-weight:600}
+.day .none{padding:14px;color:var(--muted);font-size:14px}
+.mini{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-size:14px}
+.mini{text-align:left;color:var(--ink)}
+.mini:hover{border-color:var(--muted)}
+.mini svg{width:16px;height:16px;flex:none;color:var(--muted)}
+.mini:disabled{opacity:.6;cursor:default}
+.mini b{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drop-ok{outline:2px dashed var(--ochre);outline-offset:-2px}
+
+/* ---------- book ---------- */
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.bk{padding:14px;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:var(--ink)}
+.bk:hover{border-color:var(--azulejo)}
+.bk .bk-h{display:flex;align-items:center;gap:8px;font-weight:700}
+.bk .bk-h svg{width:18px;height:18px;color:var(--azulejo)}
+.bk p{margin:0;color:var(--muted);font-size:13.5px}
+.bk .go{margin-top:auto;font-size:13px;font-weight:600;color:var(--azulejo)}
+.regions{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.region{padding:14px;display:flex;flex-direction:column;gap:8px}
+.region h3{font-size:19px}
+.region p{margin:0;color:var(--muted);font-size:14px}
+.region .row{margin-top:auto}
+.tripform{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;align-items:end}
+
+/* ---------- claude ---------- */
+.ai{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.ai{grid-template-columns:minmax(0,1fr)}}
+.presets{display:flex;flex-direction:column;gap:8px}
+.preset{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.preset:hover{border-color:var(--azulejo)}
+.preset svg{width:20px;height:20px;color:var(--azulejo);flex:none;margin-top:1px}
+.preset b{display:block}
+.preset span{font-size:13px;color:var(--muted)}
+.chat{display:flex;flex-direction:column;min-height:420px}
+.msgs{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:62vh}
+.msg{max-width:92%;min-width:0}
+.msg.me{align-self:flex-end;background:var(--azulejo);color:#fff;border-radius:16px 16px 4px 16px;padding:9px 13px}
+.msg.bot{align-self:flex-start}
+.msg.bot .bubble{background:var(--sunken);border-radius:16px 16px 16px 4px;padding:11px 14px;overflow-wrap:anywhere}
+.msg.bot .bubble h4{margin:10px 0 4px;font-size:15px}
+.msg.bot .bubble p{margin:6px 0}
+.msg.bot .bubble ul{margin:6px 0;padding-left:20px}
+.msg .thinking{display:inline-flex;gap:4px}
+.msg .thinking i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.msg .thinking i:nth-child(2){animation-delay:.2s}.msg .thinking i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.msg .thinking i{animation:none;opacity:.6}}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.composer textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:9px 12px;min-height:42px;max-height:140px}
+.sugg-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:10px}
+.sugg{padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.sugg b{font-weight:700}
+.sugg p{margin:0;font-size:13.5px;color:var(--muted)}
+
+/* ---------- route ---------- */
+.route-sum{padding:16px;display:flex;flex-direction:column;gap:14px}
+.facts4{display:flex;gap:22px;flex-wrap:wrap}
+.facts4 b{display:block;font-size:17px;font-weight:600}
+.strip{display:flex;gap:3px;min-height:44px}
+.strip .rseg{border:0;border-radius:8px;min-width:0;padding:6px 9px;color:var(--bg);text-align:left;display:flex;flex-direction:column;justify-content:center;overflow:hidden;font:inherit}
+.strip .rseg b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .rseg span{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .rseg.voorstel{background-image:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.2) 6px 12px)}
+.countdown .strip{margin-top:14px;position:relative;z-index:1}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:18px;height:10px;border-radius:3px;background:var(--muted);margin-right:5px;vertical-align:-1px}
+.legend i.striped{background-image:repeating-linear-gradient(135deg,transparent 0 3px,var(--bg) 3px 6px)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.stops{display:flex;flex-direction:column}
+.stop{padding:16px;display:flex;flex-direction:column;gap:14px}
+.stop.vast{border-color:var(--sea)}
+.stop-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.stop-h .idx{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;color:var(--bg);flex:none}
+.stop-t{min-width:0;flex:1 1 160px}
+.stop-t .linkish{font-family:var(--f-display);font-weight:400;font-size:24px;text-decoration:none;line-height:1.15}
+.nights{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.nights button{border:0;background:none;width:34px;height:34px;font-size:18px;font-weight:600;color:var(--ink);border-radius:50%}
+.nights button:disabled{opacity:.35;cursor:not-allowed}
+.nights b{min-width:84px;text-align:center;font-size:14px;font-weight:700}
+.ord{display:flex;gap:4px}
+.ord .iconbtn{width:32px;height:32px}
+.ord .iconbtn:disabled{opacity:.35;cursor:not-allowed}
+.leg{display:flex;align-items:center;gap:8px;padding:10px 0 10px 16px;margin-left:16px;border-left:2px dashed var(--line);color:var(--muted);font-size:13px}
+.leg svg{width:16px;height:16px;flex:none}
+.leg.long{color:var(--ochre)}
+.funnel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.funnel{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.step{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left;font:inherit;color:var(--ink)}
+.step:hover{border-color:var(--muted)}
+.step .st{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.step .st i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center}
+.step.half .st i{border-color:var(--ochre);background:linear-gradient(90deg,var(--ochre) 50%,transparent 50%)}
+.step.done .st i{border-color:var(--ok);background:var(--ok)}
+.step.done .st i::after{content:"";width:5px;height:3px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.step b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step span{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.next{padding:14px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-color:var(--ochre)}
+.next .t{flex:1 1 220px;min-width:0}
+.next .t b{display:block;font-size:16px;font-weight:600}
+.lvl{display:flex;gap:4px}
+.lvl i{width:22px;height:6px;border-radius:9px;background:var(--line)}
+.lvl i.on{background:var(--ochre)}
+.stop-band{display:flex;align-items:center;gap:10px;padding:4px 2px;margin-top:8px;flex-wrap:wrap;scroll-margin-top:140px}
+.stop-band h3{font-size:21px}
+.stop-band .dot{width:12px;height:12px}
+.mini .dot{margin-left:auto}
+.stay-row{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);flex-wrap:wrap}
+.stay-row .t{flex:1 1 150px;min-width:0}
+.stay-row .t .linkish{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.stay-row.chosen{border-color:var(--sea);background:var(--sea-soft)}
+.dayline{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.dayline:first-child{border-top:0}
+.dayline .d{width:96px;flex:none;color:var(--muted);font-weight:600}
+.stack{display:flex;flex-direction:column;gap:8px}
+.etappes{display:flex;flex-direction:column;gap:10px}
+.etappe-row{padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.etappe-row .t{flex:1 1 200px;min-width:0}
+.etappe-row .t b{font-size:16px}
+.route-cards{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+
+/* ---------- sheet / modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(10,20,26,.45);z-index:50;display:flex;justify-content:flex-end}
+.sheet{background:var(--bg);width:min(560px,100%);height:100%;overflow-y:auto;padding:0 0 env(safe-area-inset-bottom,0px);box-shadow:-10px 0 40px rgba(0,0,0,.2);display:flex;flex-direction:column}
+@media (max-width:720px){.scrim{align-items:flex-end}.sheet{height:92%;border-radius:18px 18px 0 0}}
+.sheet-h{position:sticky;top:0;background:var(--bg);padding:14px 18px 10px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;z-index:2}
+.sheet-h h2{font-size:24px;flex:1;min-width:0;overflow-wrap:anywhere}
+.sheet-b{padding:16px 18px 32px;display:flex;flex-direction:column;gap:18px}
+.iconbtn{border:0;background:var(--sunken);border-radius:50%;width:34px;height:34px;display:grid;place-items:center;flex:none}
+.iconbtn svg{width:18px;height:18px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.kv div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0}
+.kv b{display:block;font-weight:600;overflow-wrap:anywhere}
+.voters{display:flex;flex-direction:column;gap:6px}
+.voters .vrow{display:flex;gap:8px;align-items:center;font-size:14px}
+.voters .vrow .av{width:24px;height:24px;border:0}
+.thread{display:flex;flex-direction:column;gap:10px}
+.cmt{display:flex;gap:10px;align-items:flex-start}
+.cmt .av{width:28px;height:28px;border:0}
+.cmt .body{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.cmt .body p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmt.suggestion .body{border-color:var(--ochre);background:var(--ochre-soft)}
+.cmt.suggestion.done .body{border-color:var(--line);background:var(--surface)}
+.change{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;font-size:13px}
+.change span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:2px 8px}
+.change del{color:var(--muted)}
+form.f{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:13px;font-weight:600}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 11px;width:100%;min-width:0}
+.field textarea{resize:vertical;min-height:80px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{display:inline-flex}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;display:inline-flex;gap:5px;align-items:center;background:var(--surface);cursor:pointer;color:var(--muted)}
+.seg span svg{width:14px;height:14px}
+.seg input:checked+span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg input:focus-visible+span{outline:2px solid var(--azulejo);outline-offset:2px}
+.tabs2{display:flex;gap:6px}
+.fab{position:fixed;right:20px;bottom:24px;z-index:25;box-shadow:0 8px 24px rgba(35,72,166,.35);padding:12px 18px;font-size:15px}
+@media (max-width:720px){.fab{bottom:calc(76px + env(safe-area-inset-bottom,0px));right:16px}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;z-index:80;font-size:14px;max-width:calc(100% - 32px)}
+@media (max-width:720px){.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--no-soft);border-radius:10px;padding:8px 10px;font-size:14px}
+</style>
+</head>
+<body>
+
+
+<div class="top">
+  <div class="tiles" aria-hidden="true"></div>
+  <div class="bar">
+    <div class="brand"><h1>Rota Algarve</h1><span class="tripname" id="tripname"></span></div>
+    <div class="crew" id="crew" aria-label="Reisgenoten"></div>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+</div>
+
+<main id="main"></main>
+<button class="btn primary fab" id="fab" type="button"></button>
+<div id="overlay"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="/shim.js"></script>
+<script>
+/* ================================================================
+   Rota Algarve — samen een reis plannen zonder groepsapp-chaos.
+   Shared state lives in the artifact db:
+     trip/main                 reis-instellingen
+     ideas/{id}                voorstellen (votes: {uid:"ja"|"mis"|"nee"})
+     comments/{id}             reacties + wijzigingsvoorstellen (ideaId)
+     members/{uid}             wie doet mee
+   ================================================================ */
+
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "html") el.innerHTML = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+};
+
+/* ---------- icons (inline, stroke) ---------- */
+const P = {
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  bed:'<path d="M3 18V8M21 18v-5a3 3 0 0 0-3-3H10v8"/><path d="M3 14h18"/><circle cx="6.5" cy="11" r="1.5"/>',
+  fork:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21V3c-2 1-3 4-3 7h3"/>',
+  wave:'<path d="M2 15c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><circle cx="17" cy="7" r="3"/>',
+  boot:'<path d="M3 17l3-10h12l3 10"/><path d="M3 17h18"/><path d="M9 7l1-3h4l1 3"/>',
+  hike:'<path d="M3 20l6-11 4 6 3-4 5 9z"/>',
+  car:'<path d="M5 16l1.5-6h11L19 16"/><rect x="3" y="16" width="18" height="3" rx="1"/><circle cx="7" cy="19.5" r="1"/><circle cx="17" cy="19.5" r="1"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+  dots:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  euro:'<path d="M17 6.5A6 6 0 1 0 17 17.5"/><path d="M4 10h9M4 14h9"/>',
+  pin:'<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chat:'<path d="M4 5h16v11H9l-5 4z"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  check:'<path d="M5 12l5 5 9-10"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  plane:'<path d="M2 13l20-8-6 16-4-6z"/><path d="M12 15l4-6"/>',
+  ticket:'<path d="M3 8a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 1 0-4V4H3z" transform="translate(0 2)"/>',
+  map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+  send:'<path d="M4 12l16-8-6 16-2-6z"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  rain:'<path d="M7 15a4 4 0 0 1 .5-8A5 5 0 0 1 17 8a3.5 3.5 0 0 1 0 7z"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>',
+  users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/>',
+  route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/>',
+  up:'<path d="M6 15l6-6 6 6"/>',
+  down:'<path d="M6 9l6 6 6-6"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'
+};
+const ic = (n, cls = "") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ""}</svg>`;
+const icEl = (n) => { const s = document.createElement("span"); s.style.display = "contents"; s.innerHTML = ic(n); return s; };
+
+/* ---------- domain ---------- */
+const CATS = {
+  verblijf:  { label: "Verblijf",   icon: "bed" },
+  activiteit:{ label: "Activiteit", icon: "boot" },
+  strand:    { label: "Strand",     icon: "wave" },
+  eten:      { label: "Eten & drinken", icon: "fork" },
+  natuur:    { label: "Natuur",     icon: "hike" },
+  vervoer:   { label: "Vervoer",    icon: "car" },
+  avond:     { label: "Avond uit",  icon: "moon" },
+  overig:    { label: "Overig",     icon: "dots" }
+};
+const STATUS = {
+  voorstel:  "Voorstel",
+  gepland:   "Ingepland",
+  geboekt:   "Geboekt",
+  afgevallen:"Afgevallen"
+};
+const VOTE = { ja: "Ja!", mis: "Misschien", nee: "Nee" };
+
+/* Faro climate: avg day max °C, sea °C (Lagos), sun hours/day */
+const CLIMATE = [
+  [16,16,5],[17,15,6],[19,16,7],[21,16,9],[23,17,10],[27,19,12],
+  [29,20,12],[29,21,11],[27,21,9],[23,20,7],[19,18,6],[17,17,5]
+];
+const MONTHS = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+const DOW = ["zo","ma","di","wo","do","vr","za"];
+const DOWL = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"];
+
+/* Built-in inspiration: real places, one tap to put on the board */
+const REGIONS = [
+  { name: "Lissabon", tag: "Hoofdstad", text: "Heuvels, trams en pastéis de nata. Fijn voor 2 à 3 nachten aan het begin van de reis.",
+    ideas: [
+      { title: "Tram 28 en verdwalen in Alfama", category: "activiteit", place: "Lissabon", cost: 3, description: "Historische tram door de oude wijken. Stap uit bij Miradouro de Santa Luzia voor het uitzicht." },
+      { title: "Pastéis de Belém halen", category: "eten", place: "Lissabon", cost: 5, description: "De originele pastel de nata sinds 1837, naast het Jerónimos-klooster. De rij gaat snel." },
+      { title: "Avond in Bairro Alto", category: "avond", place: "Lissabon", cost: 30, description: "Smalle straatjes vol kleine bars waar iedereen buiten staat. Begin met fado in Alfama." }
+    ] },
+  { name: "Sintra", tag: "Dagtrip vanuit Lissabon", text: "Sprookjespaleizen in de heuvels, ongeveer 40 minuten met de trein vanaf Rossio.",
+    ideas: [
+      { title: "Pena-paleis in Sintra", category: "activiteit", place: "Sintra", cost: 20, description: "Kleurrijk paleis op een heuveltop. Koop tickets met tijdslot vooraf en ga vroeg." }
+    ] },
+  { name: "Lagos", tag: "Westkust", text: "Gezellige oude stad, Ponta da Piedade-kliffen en Praia do Camilo. Goede uitvalsbasis voor een groep.",
+    ideas: [
+      { title: "Kajakken langs Ponta da Piedade", category: "activiteit", place: "Lagos", cost: 35, description: "Peddelen door grotten en bogen in de goudkleurige kliffen. Ochtend is het rustigst op het water." },
+      { title: "Trap af naar Praia do Camilo", category: "strand", place: "Lagos", cost: 0, description: "Ruim 200 houten treden naar een klein strand tussen de rotsen. Vroeg gaan, het wordt druk." }
+    ] },
+  { name: "Sagres", tag: "Zuidwestpunt", text: "Ruig, surferig en winderig. Cabo de São Vicente bij zonsondergang is een klassieker.",
+    ideas: [
+      { title: "Zonsondergang bij Cabo de São Vicente", category: "natuur", place: "Sagres", cost: 0, description: "Het meest zuidwestelijke punt van Europa. Neem een trui mee, het waait altijd." },
+      { title: "Surfles op Praia do Tonel", category: "activiteit", place: "Sagres", cost: 45, description: "Groepsles van 2 à 3 uur, plank en wetsuit inbegrepen. Ook voor beginners." }
+    ] },
+  { name: "Benagil & Carvoeiro", tag: "Middenkust", text: "De beroemde Benagil-grot en het kliffenpad Seven Hanging Valleys.",
+    ideas: [
+      { title: "Bootje naar de Benagil-grot", category: "activiteit", place: "Benagil", cost: 30, description: "De grot zelf mag je niet meer in zwemmen of peddelen; je bekijkt hem vanaf een boottour. Boek vooraf." },
+      { title: "Wandelen: Seven Hanging Valleys", category: "natuur", place: "Carvoeiro", cost: 0, description: "Kustpad van ongeveer 6 km enkele reis tussen Praia da Marinha en Vale Centeanes." }
+    ] },
+  { name: "Albufeira", tag: "Uitgaan", text: "Druk en toeristisch, maar wel dé plek voor een avond los op de Strip.",
+    ideas: [
+      { title: "Avond op de Strip in Albufeira", category: "avond", place: "Albufeira", cost: 40, description: "Bars en clubs aan de Avenida Sá Carneiro. Taxi terug regelen." }
+    ] },
+  { name: "Tavira & Ria Formosa", tag: "Oostkust", text: "Rustiger, authentiek, lagunes en eilandstranden met een pontje.",
+    ideas: [
+      { title: "Pontje naar Ilha de Tavira", category: "strand", place: "Tavira", cost: 3, description: "Lang zandstrand op een eiland in de Ria Formosa. Pontje vertrekt uit Tavira of Quatro Águas." },
+      { title: "Cataplana eten in Tavira", category: "eten", place: "Tavira", cost: 25, description: "Stoofpot met vis en schelpdieren uit een koperen pan. Ideaal om met de hele groep te delen." }
+    ] },
+  { name: "Monchique", tag: "Binnenland", text: "Groene heuvels, Fóia (902 m) en medronho-likeur. Fijn als het strandweer tegenvalt.",
+    ideas: [
+      { title: "Uitzicht vanaf Fóia", category: "natuur", place: "Monchique", cost: 0, description: "Hoogste punt van de Algarve. Op heldere dagen zie je de hele kust." },
+      { title: "Piri-piri-kip in Guia", category: "eten", place: "Guia", cost: 15, description: "Guia staat bekend om frango piri-piri. Simpel, goedkoop, groepsproof." }
+    ] }
+];
+
+/* ---------- state ---------- */
+const S = {
+  tab: "home",
+  me: null,               // viewer id
+  canWrite: true,
+  trip: null,             // trip/main body
+  tripLoaded: false,
+  ideas: [],              // [{id, ...data}]
+  stops: [],              // route-etappes
+  stopFilter: "alle",
+  openStop: null,         // stop id in sheet
+  planFocus: null,
+  routeBusy: false,
+  comments: [],
+  members: [],
+  peers: [],              // live online ids
+  profiles: {},
+  filter: "alle",
+  sort: "stemmen",
+  showClosed: false,
+  open: null,             // idea id in sheet
+  modal: null,            // "new" | "edit" | "trip"
+  editDraft: null,
+  chat: [],               // [{role, content, cards?}]
+  aiBusy: false,
+  ready: { db: false }
+};
+let db = null, user = null, sample = null, room = null;
+let aiCtl = null;
+const STANDALONE = !!window.ROTA_STANDALONE;   // true on the Cloudflare site, false on claude.ai
+
+try { const t = localStorage.getItem("rota-tab"); if (t) S.tab = t; } catch (e) {}
+
+/* ---------- helpers ---------- */
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const now = () => Date.now();
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const parseDate = (s) => { if (!s) return null; const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fmtDay = (s) => { const d = parseDate(s); return d ? `${DOWL[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}` : ""; };
+const fmtShort = (s) => { const d = parseDate(s); return d ? `${DOW[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}` : ""; };
+const ago = (t) => {
+  const s = Math.max(1, Math.round((now() - t) / 1000));
+  if (s < 60) return "net";
+  if (s < 3600) return `${Math.round(s / 60)} min geleden`;
+  if (s < 86400) return `${Math.round(s / 3600)} uur geleden`;
+  const d = Math.round(s / 86400); return d === 1 ? "gisteren" : `${d} dagen geleden`;
+};
+const euro = (n) => n == null || n === "" || isNaN(n) ? "—" : `€ ${Math.round(Number(n)).toLocaleString("nl-NL")}`;
+const tripDays = () => {
+  const a = parseDate(S.trip?.start), b = parseDate(tripEnd());
+  if (!a || !b || b < a) return [];
+  const out = []; for (let d = new Date(a); d <= b && out.length < 31; d.setDate(d.getDate() + 1)) out.push(iso(d));
+  return out;
+};
+const groupSize = () => Math.max(1, Number(S.trip?.travelers) || S.members.length || 4);
+const nameOf = (id) => {
+  if (!id) return "Rota";
+  if (id === "claude") return "Claude";
+  const p = S.profiles[id]; return (p && p.name) || (id === S.me ? "Jij" : "Iemand");
+};
+const firstName = (id) => id === S.me ? "jij" : nameOf(id).split(" ")[0];
+const avatar = (id, cls = "av") => {
+  const p = S.profiles[id];
+  if (id && id !== "claude" && !p) return h("span", { class: cls, title: nameOf(id), style: "display:inline-block;background:var(--line)" });
+  if (id === "claude" || !id) {
+    const el = h("span", { class: cls, title: nameOf(id), style: `display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:${id === "claude" ? "var(--ochre)" : "var(--azulejo)"}` }, id === "claude" ? "C" : "R");
+    return el;
+  }
+  return h("img", { class: cls, src: p.avatarUrl, alt: "", title: nameOf(id), style: `background:${p.color}` });
+};
+const votesOf = (idea) => {
+  const v = idea.votes || {}; const r = { ja: [], mis: [], nee: [] };
+  for (const [k, val] of Object.entries(v)) if (r[val]) r[val].push(k);
+  return r;
+};
+const score = (idea) => { const v = votesOf(idea); return v.ja.length * 2 + v.mis.length - v.nee.length * 2; };
+const commentsFor = (id) => S.comments.filter(c => c.ideaId === id || c.stopId === id).sort((a, b) => a.createdAt - b.createdAt);
+const openSuggestions = (id) => commentsFor(id).filter(c => c.kind === "suggestie" && !c.resolved);
+const statusLabel = (i) => i.category === "verblijf" && i.status === "gepland" ? "Gekozen" : STATUS[i.status] || "Voorstel";
+
+/* ---------- route: etappes (groot) → verblijf → activiteiten → dagen (klein) ---------- */
+const PLACES = {
+  "Lissabon": [38.722, -9.139, "Lisbon, Portugal"], "Sintra": [38.800, -9.381, "Sintra, Portugal"], "Cascais": [38.697, -9.421, "Cascais, Portugal"],
+  "Porto": [41.149, -8.611, "Porto, Portugal"], "Évora": [38.571, -7.909, "Évora, Portugal"], "Comporta": [38.381, -8.784, "Comporta, Portugal"],
+  "Vila Nova de Milfontes": [37.725, -8.783, "Vila Nova de Milfontes, Portugal"], "Aljezur": [37.318, -8.803, "Aljezur, Portugal"],
+  "Sagres": [37.009, -8.940, "Sagres, Portugal"], "Lagos": [37.102, -8.674, "Lagos, Portugal"], "Luz": [37.087, -8.727, "Luz, Portugal"],
+  "Portimão": [37.139, -8.537, "Portimão, Portugal"], "Monchique": [37.318, -8.556, "Monchique, Portugal"], "Carvoeiro": [37.097, -8.472, "Carvoeiro, Portugal"],
+  "Albufeira": [37.089, -8.250, "Albufeira, Portugal"], "Vilamoura": [37.077, -8.117, "Vilamoura, Portugal"], "Faro": [37.019, -7.930, "Faro, Portugal"],
+  "Olhão": [37.026, -7.841, "Olhão, Portugal"], "Tavira": [37.127, -7.649, "Tavira, Portugal"], "Benagil": [37.087, -8.426, "Benagil, Portugal"],
+  "Guia": [37.126, -8.300, "Guia, Portugal"], "Sevilla": [37.389, -5.984, "Seville, Spain"]
+};
+const ALIAS = { lisboa: "Lissabon", lisbon: "Lissabon", seville: "Sevilla", "praia da luz": "Luz" };
+const AIRPORTS = { LIS: [38.774, -9.134], FAO: [37.017, -7.966], OPO: [41.248, -8.681], SVQ: [37.418, -5.893] };
+const AIRPORT_NAME = { LIS: "Lissabon", FAO: "Faro", OPO: "Porto", SVQ: "Sevilla" };
+const STOPCOL = ["var(--azulejo)", "var(--sea)", "var(--ochre)", "var(--ok)", "var(--no)"];
+const ACC = { open: "Nog open", hotel: "Hotel", villa: "Villa", appartement: "Appartement", bnb: "B&B / guesthouse", hostel: "Hostel", camping: "Camping" };
+const TEMPLATES = [
+  { label: "3n Lissabon → 5n Albufeira", stops: [["Lissabon", 3, "hotel"], ["Albufeira", 5, "villa"]] },
+  { label: "7n Lagos", stops: [["Lagos", 7, "villa"]] },
+  { label: "2n Lissabon → 2n Comporta → 4n Tavira", stops: [["Lissabon", 2, "hotel"], ["Comporta", 2, "bnb"], ["Tavira", 4, "appartement"]] },
+  { label: "4n Lagos → 4n Tavira", stops: [["Lagos", 4, "villa"], ["Tavira", 4, "appartement"]] }
+];
+const norm = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+function placeInfo(name) {
+  const n = norm(name); if (!n) return null;
+  const key = ALIAS[n] || Object.keys(PLACES).find(k => norm(k) === n) || Object.keys(PLACES).find(k => n.includes(norm(k)));
+  return key ? { key, lat: PLACES[key][0], lon: PLACES[key][1], q: PLACES[key][2] } : null;
+}
+const samePlace = (a, b) => { if (norm(a) === norm(b)) return true; const pa = placeInfo(a), pb = placeInfo(b); return !!(pa && pb && pa.key === pb.key); };
+function kmBetween(a, b) {
+  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(x));
+}
+/* rough road estimate: straight line × 1,25, average 85 km/h */
+function legInfo(aName, bName) {
+  const a = placeInfo(aName), b = placeInfo(bName);
+  if (!a || !b) return null;
+  const km = Math.round(kmBetween(a, b) * 1.25 / 5) * 5;
+  return { km, hrs: km / 85 };
+}
+const fmtHrs = (x) => x < 0.75 ? `${Math.max(10, Math.round(x * 12) * 5)} min` : `${(Math.round(x * 2) / 2).toLocaleString("nl-NL")} uur`;
+function nearestAirport(name) {
+  const p = placeInfo(name); if (!p) return "FAO";
+  let best = "FAO", d = Infinity;
+  for (const [code, [lat, lon]] of Object.entries(AIRPORTS)) { const k = kmBetween(p, { lat, lon }); if (k < d) { d = k; best = code; } }
+  return best;
+}
+const addDays = (x, n) => { const d = parseDate(x); d.setDate(d.getDate() + n); return iso(d); };
+const daysBetween = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 86400000);
+const nightsOf = (st) => Math.max(1, Math.min(30, Number(st.nights) || 1));
+const sortedStops = (list = S.stops) => [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || (a.createdAt || 0) - (b.createdAt || 0));
+function stopRanges(list = sortedStops(), start = S.trip?.start) {
+  let off = 0;
+  return list.map((st, idx) => {
+    const nights = nightsOf(st);
+    const r = { stop: st, id: st.id, idx, nights, from: off, start: start ? addDays(start, off) : null, end: start ? addDays(start, off + nights) : null, color: STOPCOL[idx % STOPCOL.length] };
+    off += nights; return r;
+  });
+}
+const totalNights = () => S.stops.reduce((a, st) => a + nightsOf(st), 0);
+const tripEnd = () => S.stops.length && S.trip?.start ? addDays(S.trip.start, totalNights()) : S.trip?.end;
+function rangeForDay(day, ranges = stopRanges(), start = S.trip?.start) {
+  if (!day || !start || !ranges.length) return null;
+  const off = daysBetween(start, day);
+  const last = ranges[ranges.length - 1];
+  if (off === last.from + last.nights) return last;  // vertrekdag hoort bij de laatste etappe
+  return ranges.find(r => off >= r.from && off < r.from + r.nights) || null;
+}
+const stopById = (id) => id ? S.stops.find(st => st.id === id) : null;
+function stopOf(idea) {
+  if (idea.day) { const r = rangeForDay(idea.day); if (r) return r.stop; }
+  return stopById(idea.stopId) || null;
+}
+const stopColor = (id) => stopRanges().find(r => r.id === id)?.color || "var(--muted)";
+function autoStopId(place) {
+  if (!S.stops.length || !place) return "";
+  const exact = S.stops.find(st => samePlace(st.place, place));
+  if (exact) return exact.id;
+  const p = placeInfo(place); if (!p) return "";
+  let best = "", d = 45;
+  for (const st of S.stops) { const q = placeInfo(st.place); if (q) { const k = kmBetween(p, q); if (k < d) { d = k; best = st.id; } } }
+  return best;
+}
+function stopFunnel(r) {
+  const st = r.stop;
+  const stays = S.ideas.filter(i => i.category === "verblijf" && i.status !== "afgevallen" && stopOf(i)?.id === st.id).sort((a, b) => score(b) - score(a));
+  const chosen = stays.find(i => i.id === st.stayId) || stays.find(i => i.status === "geboekt") || null;
+  const acts = S.ideas.filter(i => i.category !== "verblijf" && i.status !== "afgevallen" && stopOf(i)?.id === st.id).sort((a, b) => score(b) - score(a));
+  let plannedDays = 0;
+  if (r.start) for (let k = 0; k < r.nights; k++) { const d = addDays(r.start, k); if (S.ideas.some(i => i.day === d && i.status !== "afgevallen" && i.category !== "verblijf")) plannedDays++; }
+  return {
+    place: st.status === "vast" ? "done" : "half",
+    stay: chosen?.status === "geboekt" ? "done" : (chosen || stays.length) ? "half" : "todo",
+    act: acts.length >= r.nights ? "done" : acts.length ? "half" : "todo",
+    days: !r.start ? "todo" : plannedDays >= r.nights ? "done" : plannedDays ? "half" : "todo",
+    stays, chosen, acts, plannedDays
+  };
+}
+const routeText = () => stopRanges().map(r => `${r.nights}n ${r.stop.place}`).join(" → ");
+const routeTodo = () => S.me ? S.stops.filter(st => st.status !== "vast" && !(st.votes && st.votes[S.me])) : [];
+
+let toastT;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600);
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast("Gekopieerd"); return true; }
+  catch (e) { toast("Kopiëren lukte niet. Selecteer de tekst handmatig."); return false; }
+}
+
+/* ---------- writes ---------- */
+function guardWrite() {
+  if (!db) { toast("Opslaan kan alleen in de gedeelde versie op claude.ai."); return false; }
+  if (!S.canWrite) { toast("Je kunt alleen meekijken. Vraag de organisator om je als bewerker uit te nodigen."); return false; }
+  return true;
+}
+async function write(fn, okMsg) {
+  if (!guardWrite()) return false;
+  try { await fn(); if (okMsg) toast(okMsg); return true; }
+  catch (e) {
+    if (e && e.code === "invalid_argument") { S.canWrite = false; render(); toast("Je hebt geen schrijfrechten op deze reis."); }
+    else if (e && e.code === "quota_exceeded") toast("De reis zit vol. Ruim oude voorstellen op en probeer opnieuw.");
+    else toast("Opslaan mislukt. Probeer het zo nog eens.");
+    return false;
+  }
+}
+async function ensureMember() {
+  if (!db || !S.me || !S.canWrite) return;
+  if (S.members.some(m => m.id === S.me)) return;
+  try { await db.doc("members/" + S.me).set({ joinedAt: now() }); } catch (e) {}
+}
+const addIdea = (data) => write(() => db.collection("ideas").doc(uid()).set({
+  title: data.title, description: data.description || "", category: data.category || "overig",
+  stopId: (data.day && rangeForDay(data.day)?.id) || data.stopId || autoStopId(data.place),
+  place: data.place || "", cost: data.cost === "" || data.cost == null ? null : Number(data.cost),
+  link: data.link || "", day: data.day || "", time: data.time || "",
+  status: data.day ? "gepland" : "voorstel", author: data.author || S.me, createdAt: now(), updatedAt: now(),
+  votes: data.author === "claude" || !S.me ? {} : { [S.me]: "ja" }
+}), "Voorstel staat op het bord");
+const patchIdea = (id, patch, msg) => write(() => db.doc("ideas/" + id).update({ ...patch, updatedAt: now(), updatedBy: S.me }), msg);
+const castVote = (id, val, coll = "ideas") => {
+  const list = coll === "stops" ? S.stops : S.ideas;
+  const item = list.find(i => i.id === id); if (!item || !S.me) return;
+  const cur = item.votes?.[S.me];
+  // optimistic so the button responds instantly
+  const votes = { ...(item.votes || {}) }; if (cur === val) delete votes[S.me]; else votes[S.me] = val;
+  const next = list.map(i => i.id === id ? { ...i, votes } : i);
+  if (coll === "stops") S.stops = next; else S.ideas = next;
+  render();
+  return write(() => db.doc(coll + "/" + id).update({ votes: { [S.me]: cur === val ? null : val } }));
+};
+const addComment = (targetId, text, kind = "reactie", changes = null, coll = "ideas") => write(() => db.collection("comments").doc(uid()).set({
+  ...(coll === "stops" ? { stopId: targetId } : { ideaId: targetId }), text, kind, changes, author: S.me, createdAt: now(), resolved: false
+}), kind === "suggestie" ? "Suggestie geplaatst" : null);
+const newStop = (data, order) => ({
+  id: uid(), place: String(data.place).slice(0, 60), nights: nightsOf(data), accType: ACC[data.accType] ? data.accType : "open", note: data.note || "",
+  order, status: "voorstel", stayId: "", createdBy: data.createdBy || S.me, createdAt: now(),
+  votes: data.createdBy === "claude" || !S.me ? {} : { [S.me]: "ja" }
+});
+const maxOrder = () => S.stops.reduce((a, st) => Math.max(a, st.order ?? 0), 0);
+/* Changes the route (nights, order, places) and moves planned activities along with their stop. */
+async function changeRoute(patches, msg, extras = []) {
+  if (!guardWrite()) return false;
+  const before = stopRanges();
+  const kept = S.stops.filter(st => !patches[st.id]?.__delete).map(st => patches[st.id] ? { ...st, ...patches[st.id] } : st);
+  const after = stopRanges(sortedStops([...kept, ...extras]));
+  if (after.reduce((a, r) => a + r.nights, 0) > 30) { toast("Maximaal 30 nachten, anders wordt de planning onoverzichtelijk."); return false; }
+  const findNew = (r0) => after.find(r => r.id === r0.id) || after.find(r => samePlace(r.stop.place, r0.stop.place));
+  const moves = [];
+  for (const i of S.ideas) {
+    const r0 = i.day && S.trip?.start ? rangeForDay(i.day, before) : null;
+    if (r0) {
+      const r1 = findNew(r0);
+      if (!r1) { moves.push([i.id, { day: "", stopId: "", status: i.status === "gepland" ? "voorstel" : i.status }]); continue; }
+      const isLast = r1.idx === after.length - 1;
+      const off = Math.min(daysBetween(r0.start, i.day), isLast ? r1.nights : r1.nights - 1);
+      const nd = addDays(r1.start, off);
+      if (nd !== i.day || i.stopId !== r1.id) moves.push([i.id, { day: nd, stopId: r1.id }]);
+    } else if (i.stopId && patches[i.stopId]?.__delete) {
+      const old = before.find(r => r.id === i.stopId); const r1 = old && findNew(old);
+      moves.push([i.id, { stopId: r1 ? r1.id : "" }]);
+    }
+  }
+  const warn = before.filter(r0 => {
+    const r1 = after.find(r => r.id === r0.id);
+    return r1 && r0.start && (r0.start !== r1.start || r0.end !== r1.end) && S.ideas.some(i => i.id === r0.stop.stayId && i.status === "geboekt");
+  }).map(r => r.stop.place);
+  const ok = await write(async () => {
+    for (const x of extras) { const { id, ...data } = x; await db.doc("stops/" + id).set(data); }
+    for (const [id, p] of Object.entries(patches)) {
+      if (p.__delete) await db.doc("stops/" + id).delete();
+      else await db.doc("stops/" + id).update({ ...p, updatedAt: now(), updatedBy: S.me });
+    }
+    for (const [id, p] of moves) await db.doc("ideas/" + id).update({ ...p, updatedAt: now() });
+  });
+  if (ok) toast(warn.length ? `Let op: het geboekte verblijf in ${warn.join(", ")} valt nu op andere data. Check de boeking.`
+    : msg + (moves.length ? ` · ${moves.length} ${moves.length > 1 ? "ideeën schoven" : "idee schoof"} mee` : ""));
+  return ok;
+}
+async function setNights(st, n) {
+  n = Math.max(1, Math.min(30, n));
+  if (S.routeBusy || n === nightsOf(st)) return;
+  S.routeBusy = true;
+  try { await changeRoute({ [st.id]: { nights: n } }, `${st.place}: ${n} ${n === 1 ? "nacht" : "nachten"}`); }
+  finally { S.routeBusy = false; }
+}
+async function moveStop(id, dir) {
+  if (S.routeBusy) return;
+  const list = sortedStops(); const i = list.findIndex(st => st.id === id); const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  const re = [...list]; [re[i], re[j]] = [re[j], re[i]];
+  const patches = {}; re.forEach((st, k) => { if ((st.order ?? 0) !== k + 1) patches[st.id] = { order: k + 1 }; });
+  S.routeBusy = true;
+  try { await changeRoute(patches, "Volgorde aangepast"); } finally { S.routeBusy = false; }
+}
+function applyTemplate(t) {
+  const base = maxOrder();
+  return changeRoute({}, "Route staat erop. Stem, schuif met nachten en zet vast wat klopt.", t.stops.map(([place, nights, accType], k) => newStop({ place, nights, accType }, base + k + 1)));
+}
+async function chooseStay(st, idea, booked = false) {
+  const prev = S.ideas.find(i => i.id === st.stayId && i.id !== idea.id && i.status === "gepland");
+  return write(async () => {
+    await db.doc("ideas/" + idea.id).update({ status: booked || idea.status === "geboekt" ? "geboekt" : "gepland", stopId: st.id, ...(booked ? { bookedBy: S.me, bookedAt: now() } : {}), updatedAt: now(), updatedBy: S.me });
+    await db.doc("stops/" + st.id).update({ stayId: idea.id, updatedAt: now(), updatedBy: S.me });
+    if (prev) await db.doc("ideas/" + prev.id).update({ status: "voorstel", updatedAt: now() });
+  }, booked ? `Geboekt: ${idea.title}` : `Verblijf in ${st.place}: ${idea.title}`);
+}
+
+/* ---------- render: shell ---------- */
+const TABS = [
+  { id: "home", label: "Overzicht", icon: "home" },
+  { id: "route", label: "Route", icon: "route" },
+  { id: "ideas", label: "Ideeën", icon: "bulb" },
+  { id: "plan", label: "Planning", icon: "cal" },
+  { id: "book", label: "Boeken", icon: "bag" },
+  { id: "ai", label: "Claude", icon: "spark" }
+];
+function myTodo() {
+  if (!S.me) return [];
+  return S.ideas.filter(i => i.status !== "afgevallen" && !(i.votes && i.votes[S.me]));
+}
+function renderTabs() {
+  const nav = $("#tabs"); nav.innerHTML = "";
+  const todo = myTodo().length;
+  for (const t of TABS) {
+    const b = h("button", { class: "tab", role: "tab", "aria-selected": String(S.tab === t.id), type: "button", onclick: () => setTab(t.id) });
+    const n = t.id === "ideas" ? todo : t.id === "route" ? routeTodo().length : 0;
+    b.innerHTML = ic(t.icon) + `<span>${t.label}</span>` + (n ? `<span class="count num" aria-label="${n} wachten op jouw stem">${n}</span>` : "");
+    nav.append(b);
+  }
+}
+function setTab(t) {
+  S.tab = t; try { localStorage.setItem("rota-tab", t); } catch (e) {}
+  room?.presence({ tab: t }).catch(() => {});
+  render(); window.scrollTo({ top: 0 });
+}
+function renderHeader() {
+  $("#tripname").textContent = S.trip?.name ? `· ${S.trip.name}` : "";
+  const crew = $("#crew"); crew.innerHTML = "";
+  const ids = [...new Set([...S.members.map(m => m.id), ...S.peers])];
+  const online = new Set(S.peers);
+  ids.sort((a, b) => (online.has(b) - online.has(a)));
+  ids.slice(0, 6).forEach(id => {
+    const w = h("span", { class: "avwrap" + (online.has(id) ? " online" : "") }, avatar(id));
+    w.title = nameOf(id) + (online.has(id) ? " · nu online" : "");
+    crew.append(w);
+  });
+  if (ids.length > 6) crew.append(h("span", { class: "more" }, `+${ids.length - 6}`));
+  if (S.peers.length > 1) crew.append(h("span", { class: "more" }, `${S.peers.length} online`));
+  if (STANDALONE && db) {
+    crew.title = "Ben jij iemand anders? Klik om van persoon te wisselen.";
+    crew.style.cursor = "pointer";
+    crew.onclick = () => window.rotaSwitchPerson?.();
+    if (!$("#sharebtn")) {
+      const sb = h("button", { class: "btn small primary", id: "sharebtn", type: "button", onclick: async () => {
+        const r = await window.rotaShare?.();
+        if (r === "copied") toast("Link gekopieerd. Plak hem in de groepsapp.");
+        else if (r && r !== "shared" && r !== "cancelled") toast("Deel deze link: " + r);
+      } }, icEl("users"), "Nodig uit");
+      crew.after(sb);
+    }
+  }
+  const fab = $("#fab");
+  const onRoute = S.tab === "route";
+  fab.innerHTML = ic("plus") + `<span>${onRoute ? "Etappe toevoegen" : "Nieuw voorstel"}</span>`;
+  fab.hidden = S.tab === "ai" || S.tab === "book" || (onRoute && !S.stops.length);
+  fab.onclick = () => openModal(onRoute ? "stop" : "new");
+}
+function render() {
+  renderTabs(); renderHeader();
+  const main = $("#main");
+  const act = document.activeElement;
+  const focusId = act && main.contains(act) ? act.id : null;
+  const kept = {}; main.querySelectorAll("input[id],textarea[id]").forEach(el => kept[el.id] = [el.value, el.selectionStart, el.selectionEnd]);
+  main.innerHTML = "";
+  const v = h("div", { class: "view" });
+  if (!db && S.ready.db) v.append(banner(STANDALONE ? "Geen verbinding met de server. Je kunt rondkijken, maar wijzigingen worden niet bewaard." : "Deze pagina werkt samen met je reisgenoten via claude.ai. Hier zie je hem zonder opslag: je kunt rondkijken maar niets bewaren."));
+  else if (db && !S.canWrite) v.append(banner("Je kijkt mee. Om te stemmen en voorstellen te doen moet de organisator je uitnodigen als bewerker (Delen → uitnodigen per e-mail)."));
+  ({ home: viewHome, route: viewRoute, ideas: viewIdeas, plan: viewPlan, book: viewBook, ai: viewAI }[S.tab] || viewHome)(v);
+  main.append(v);
+  for (const [id, [val, a, b]] of Object.entries(kept)) { const el = document.getElementById(id); if (el && !el.disabled) el.value = val; }
+  if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); const k = kept[focusId]; if (k && el.setSelectionRange && k[1] != null) try { el.setSelectionRange(k[1], k[2]); } catch (e) {} } }
+  // a form someone is filling in is never rebuilt by a live update
+  if (!(S.modal && lastOverlayKey === "m:" + S.modal)) renderOverlay();
+}
+const banner = (txt) => { const b = h("div", { class: "banner" }); b.innerHTML = ic("info"); b.append(h("div", {}, txt)); return b; };
+
+/* ---------- view: home ---------- */
+function cliffSvg() {
+  return `<svg class="cliff" viewBox="0 0 200 120" aria-hidden="true">
+    <path d="M0 120 L0 70 Q20 60 34 66 L40 40 Q55 30 70 38 L78 62 Q90 58 96 70 L110 34 Q126 22 140 30 L150 60 Q160 50 170 58 L176 44 Q190 40 200 48 L200 120 Z" style="fill:var(--ochre)" opacity=".85"/>
+    <path d="M118 120 L120 82 Q130 70 140 80 L142 120 Z" style="fill:var(--bg)" opacity=".9"/>
+    <path d="M0 106 Q25 100 50 106 T100 106 T150 106 T200 106 L200 120 L0 120 Z" style="fill:var(--azulejo)" opacity=".55"/>
+  </svg>`;
+}
+function viewHome(v) {
+  const days = tripDays();
+  const start = parseDate(S.trip?.start);
+  const hero = h("div", { class: "hero" });
+  const cd = h("section", { class: "card countdown" });
+  if (start) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const diff = Math.round((start - today) / 86400000);
+    const endD = parseDate(tripEnd());
+    let big, sub;
+    if (diff > 0) { big = `${diff}<small>${diff === 1 ? "nacht" : "nachten"} slapen</small>`; sub = "tot vertrek"; }
+    else if (endD && today <= endD) { big = `Dag ${1 - diff}<small>van ${days.length}</small>`; sub = "jullie zijn er!"; }
+    else { big = `Bom regresso`; sub = "de reis zit erop"; }
+    cd.innerHTML = `<div class="label">${esc(sub)}</div><div class="big num">${big}</div>`;
+    if (S.stops.length) cd.append(routeStrip(stopRanges()));
+    const meta = h("div", { class: "meta" });
+    meta.innerHTML = `<div><span class="label">Wanneer</span><b>${esc(fmtShort(S.trip.start))} – ${esc(fmtShort(tripEnd()))}</b></div>
+      <div><span class="label">${S.stops.length ? "Route" : "Waar"}</span><b>${esc(S.stops.length ? `${S.stops.length} etappe${S.stops.length > 1 ? "s" : ""}, ${totalNights()} nachten` : S.trip.base || "Algarve")}</b></div>
+      <div><span class="label">Groep</span><b class="num">${groupSize()} pers.</b></div>`;
+    cd.append(meta);
+  } else {
+    cd.innerHTML = `<div class="label">Nog geen data</div><h2 style="font-size:28px;margin:6px 0 8px">Wanneer gaan jullie?</h2><p class="muted" style="margin:0 0 12px;max-width:32ch">Kies data en een uitvalsbasis. Dan vullen de planning en de boekingslinks zich vanzelf.</p>`;
+    cd.append(h("button", { class: "btn primary", type: "button", onclick: () => openModal("trip") }, "Reis instellen"));
+  }
+  cd.insertAdjacentHTML("beforeend", cliffSvg());
+  if (start) cd.append(h("button", { class: "btn small ghost", style: "position:absolute;top:12px;right:12px", type: "button", onclick: () => openModal("trip") }, icEl("edit"), "Wijzig"));
+  hero.append(cd);
+
+  const live = S.ideas.filter(i => i.status !== "afgevallen");
+  const st = h("div", { class: "stats" });
+  const s = (cls, n, l) => { const e = h("div", { class: "card stat " + cls }); e.innerHTML = `<b class="num">${n}</b><span class="small muted">${l}</span>`; return e; };
+  st.append(s("s1", live.filter(i => i.status === "voorstel").length, "open voorstellen"),
+            s("s2", live.filter(i => i.status === "gepland").length, "ingepland"),
+            s("s3", live.filter(i => i.status === "geboekt").length, "geboekt"));
+  const costPP = live.filter(i => i.status !== "voorstel").reduce((a, i) => a + (Number(i.cost) || 0), 0);
+  const bud = Number(S.trip?.budget) || 0;
+  const b = h("div", { class: "card budget" });
+  const pct = bud ? Math.min(100, Math.round(costPP / bud * 100)) : 0;
+  b.innerHTML = `<div class="row"><span class="label">Kosten per persoon (gepland + geboekt)</span><span class="spacer"></span><b class="num">${euro(costPP)}${bud ? ` <span class="muted small">van ${euro(bud)}</span>` : ""}</b></div>
+    ${bud ? `<div class="meter" role="img" aria-label="${pct}% van budget"><i style="width:${pct}%;background:${pct > 95 ? "var(--no)" : "var(--sea)"}"></i></div>` : `<div class="small muted" style="margin-top:4px">Stel een budget in bij de reis om te zien hoeveel ruimte er nog is.</div>`}`;
+  st.append(b);
+  if (start) {
+    const c = CLIMATE[start.getMonth()];
+    const cl = h("div", { class: "card climate", style: "grid-column:1/-1" });
+    cl.innerHTML = `<span class="label" style="flex-basis:100%">Gemiddeld in ${MONTHS[start.getMonth()]}</span>
+      <div><b class="num">${c[0]}°C</b><span class="small muted">overdag</span></div>
+      <div><b class="num">${c[1]}°C</b><span class="small muted">zeewater</span></div>
+      <div><b class="num">${c[2]} u</b><span class="small muted">zon per dag</span></div>`;
+    st.append(cl);
+  }
+  hero.append(st);
+  v.append(hero);
+
+  if (S.ready.db) v.append(nextStepCard());
+  const grid = h("div", { class: "home-grid" });
+  // waiting on you
+  const todo = myTodo().sort((a, b) => b.createdAt - a.createdAt);
+  const rTodo = routeTodo();
+  const sugWaiting = S.ideas.filter(i => i.author === S.me && openSuggestions(i.id).length);
+  const left = h("section", {});
+  left.append(h("div", { class: "section-h", style: "margin-bottom:10px" }, h("h2", {}, "Wacht op jou"), h("span", { class: "muted small" }, todo.length + sugWaiting.length + rTodo.length ? "Stem even, dan weet de groep waar ze aan toe zijn." : "")));
+  if (!S.ready.db) left.append(h("div", { class: "empty" }, "Even laden…"));
+  else if (!todo.length && !sugWaiting.length && !rTodo.length) {
+    left.append(h("div", { class: "empty" }, h("h3", {}, S.ideas.length ? "Je bent helemaal bij" : "Het bord is nog leeg"),
+      h("div", {}, S.ideas.length ? "Op alles gestemd. Tijd om zelf iets voor te stellen?" : "Zet het eerste idee erop, of laat Claude een paar voorstellen doen.")));
+  } else {
+    const list = h("div", { class: "card todo-list" });
+    rTodo.forEach(st => {
+      const r = h("div", { class: "todo" });
+      const t = h("div", { class: "t" }, h("button", { class: "linkish", type: "button", onclick: () => openStop(st.id) }, `Route: ${nightsOf(st)} nachten ${st.place}`));
+      t.append(h("span", { class: "small muted" }, `Etappe · ${ACC[st.accType] || "verblijf nog open"} · voorgesteld door ${firstName(st.createdBy)}`));
+      r.append(t, voteCtl(st, true, "stops"));
+      list.append(r);
+    });
+    sugWaiting.forEach(i => {
+      const r = h("div", { class: "todo" });
+      r.append(h("div", { class: "t" }, h("b", {}, i.title), h("span", { class: "small muted" }, `${openSuggestions(i.id).length} suggestie(s) op jouw voorstel`)),
+               h("button", { class: "btn small", type: "button", onclick: () => openIdea(i.id) }, "Bekijk"));
+      list.append(r);
+    });
+    todo.slice(0, 8).forEach(i => {
+      const r = h("div", { class: "todo" });
+      const t = h("div", { class: "t" }, h("button", { class: "linkish", type: "button", onclick: () => openIdea(i.id) }, i.title));
+      t.append(h("span", { class: "small muted" }, `${CATS[i.category]?.label || "Overig"} · voorgesteld door ${firstName(i.author)}`));
+      r.append(t, voteCtl(i, true));
+      list.append(r);
+    });
+    if (todo.length > 8) list.append(h("div", { class: "todo" }, h("button", { class: "btn small ghost", type: "button", onclick: () => setTab("ideas") }, `Nog ${todo.length - 8} meer op het bord`)));
+    left.append(list);
+  }
+  // top picks
+  const tops = live.filter(i => i.status === "voorstel").sort((a, b) => score(b) - score(a)).slice(0, 3).filter(i => score(i) > 0);
+  if (tops.length) {
+    left.append(h("div", { class: "section-h", style: "margin:20px 0 10px" }, h("h2", {}, "Favorieten van de groep")));
+    const g = h("div", { class: "grid" }); tops.forEach(i => g.append(ideaCard(i))); left.append(g);
+  }
+  grid.append(left);
+
+  // activity feed
+  const right = h("section", {});
+  right.append(h("div", { class: "section-h", style: "margin-bottom:10px" }, h("h2", {}, "Laatste nieuws"), h("span", { class: "spacer" }),
+    h("button", { class: "btn small", type: "button", onclick: () => nudge() }, icEl("copy"), "Porretje voor de groep"),
+    STANDALONE ? h("a", { class: "btn small", href: nudge(true), target: "_blank", rel: "noopener" }, "Via WhatsApp") : null));
+  const ev = [];
+  const asIdea = (i) => ({ title: i.title, open: () => openIdea(i.id) });
+  const asStop = (st) => ({ title: `etappe ${st.place}`, open: () => openStop(st.id) });
+  S.ideas.forEach(i => ev.push({ t: i.createdAt, who: i.author, idea: asIdea(i), txt: "stelde voor:" }));
+  S.ideas.filter(i => i.status === "geboekt" && i.bookedAt).forEach(i => ev.push({ t: i.bookedAt, who: i.bookedBy, idea: asIdea(i), txt: "boekte" }));
+  S.stops.forEach(st => ev.push({ t: st.createdAt, who: st.createdBy, idea: asStop(st), txt: "zette op de route:" }));
+  S.stops.filter(st => st.status === "vast" && st.lockedAt).forEach(st => ev.push({ t: st.lockedAt, who: st.lockedBy, idea: asStop(st), txt: "zette vast:" }));
+  S.comments.forEach(c => {
+    const i = S.ideas.find(x => x.id === c.ideaId), st = stopById(c.stopId);
+    const target = i ? asIdea(i) : st ? asStop(st) : null;
+    if (target) ev.push({ t: c.createdAt, who: c.author, idea: target, txt: c.kind === "suggestie" ? "deed een suggestie bij" : "reageerde op", quote: c.text });
+  });
+  ev.sort((a, b) => b.t - a.t);
+  const feed = h("div", { class: "card feed" });
+  if (!ev.length) feed.append(h("div", { class: "item muted" }, "Hier zie je wie wat voorstelt, reageert en boekt."));
+  ev.slice(0, 12).forEach(e => {
+    const txt = h("div", { class: "txt" });
+    txt.append(h("b", {}, firstName(e.who).replace(/^jij$/, "Jij")), " ", e.txt, " ", h("button", { class: "linkish", type: "button", onclick: e.idea.open }, e.idea.title));
+    if (e.quote) txt.append(h("div", { class: "small" }, h("q", {}, e.quote.length > 90 ? e.quote.slice(0, 90) + "…" : e.quote)));
+    txt.append(h("div", { class: "small muted" }, ago(e.t)));
+    feed.append(h("div", { class: "item" }, avatar(e.who), txt));
+  });
+  right.append(feed);
+  grid.append(right);
+  v.append(grid);
+}
+function nudge(viaWhatsApp = false) {
+  const todo = S.ideas.filter(i => i.status === "voorstel");
+  const top = [...todo].sort((a, b) => score(b) - score(a)).slice(0, 3);
+  const lines = [`Algarve-update${S.trip?.start ? ` (${fmtShort(S.trip.start)} – ${fmtShort(tripEnd())})` : ""}:`];
+  if (S.stops.length) lines.push(`Route: ${routeText()}${routeTodo().length || S.stops.some(st => st.status !== "vast") ? " (nog niet alles vast)" : ""}`);
+  lines.push(`${todo.length} voorstellen wachten op stemmen in Rota Algarve.`);
+  if (top.length) lines.push("Favorieten tot nu toe:", ...top.map(i => `• ${i.title} (${votesOf(i).ja.length}x ja)`));
+  lines.push("Stem even mee in de app, dan hoeft het niet hier in de groep 🙂");
+  if (STANDALONE && window.rotaTripUrl) lines.push(window.rotaTripUrl());
+  if (viaWhatsApp) return "https://wa.me/?text=" + encodeURIComponent(lines.join("\n"));
+  copyText(lines.join("\n"));
+}
+
+/* ---------- vote control & card ---------- */
+function voteCtl(idea, compact = false, coll = "ideas") {
+  const mine = idea.votes?.[S.me];
+  const v = votesOf(idea);
+  const wrap = h("div", { class: "vote", role: "group", "aria-label": "Stem" });
+  for (const k of ["ja", "mis", "nee"]) {
+    const n = v[k].length;
+    wrap.append(h("button", { type: "button", class: k, "aria-pressed": String(mine === k), disabled: !S.me || !db ? true : null,
+      title: VOTE[k], onclick: (e) => { e.stopPropagation(); castVote(idea.id, k, coll); } },
+      compact ? VOTE[k] : `${VOTE[k]}${n ? " " + n : ""}`));
+  }
+  return wrap;
+}
+function tally(idea) {
+  const v = votesOf(idea); const t = v.ja.length + v.mis.length + v.nee.length || 1;
+  const el = h("div", { class: "tally", role: "img", "aria-label": `${v.ja.length} ja, ${v.mis.length} misschien, ${v.nee.length} nee` });
+  el.innerHTML = `<i class="j" style="width:${v.ja.length / t * 100}%"></i><i class="m" style="width:${v.mis.length / t * 100}%"></i><i class="n" style="width:${v.nee.length / t * 100}%"></i>`;
+  return el;
+}
+function ideaCard(i, isTop = false) {
+  const c = h("article", { class: `card idea ${i.status}${isTop ? " top1" : ""}`, tabindex: "0", onclick: () => openIdea(i.id), onkeydown: (e) => { if (e.key === "Enter") openIdea(i.id); } });
+  const head = h("div", { class: "row" });
+  const cat = h("span", { class: "cat" }); cat.innerHTML = ic(CATS[i.category]?.icon || "dots") + esc(CATS[i.category]?.label || "Overig");
+  head.append(cat, h("span", { class: "spacer" }));
+  if (i.author === "claude") head.append(h("span", { class: "pill claude" }, "Idee van Claude"));
+  else if (!i.author) head.append(h("span", { class: "pill afgevallen" }, "Startidee"));
+  head.append(h("span", { class: "pill " + i.status }, statusLabel(i)));
+  c.append(head, h("h3", {}, i.title));
+  if (i.description) c.append(h("div", { class: "desc" }, i.description));
+  const facts = h("div", { class: "facts" });
+  const st = stopOf(i);
+  if (st) facts.insertAdjacentHTML("beforeend", `<span><i class="dot" style="background:${stopColor(st.id)}"></i>${esc(st.place)}</span>`);
+  if (i.place && !(st && samePlace(st.place, i.place))) facts.insertAdjacentHTML("beforeend", `<span>${ic("pin")}${esc(i.place)}</span>`);
+  if (i.cost != null && i.cost !== "") facts.insertAdjacentHTML("beforeend", `<span class="num">${ic("euro")}${i.cost == 0 ? "gratis" : esc(Math.round(i.cost)) + " p.p."}</span>`);
+  if (i.day) facts.insertAdjacentHTML("beforeend", `<span>${ic("cal")}${esc(fmtShort(i.day))}${i.time ? " " + esc(i.time) : ""}</span>`);
+  const nC = commentsFor(i.id).length, nS = openSuggestions(i.id).length;
+  if (nC) facts.insertAdjacentHTML("beforeend", `<span class="num">${ic("chat")}${nC}${nS ? ` · ${nS} suggestie${nS > 1 ? "s" : ""}` : ""}</span>`);
+  if (facts.childNodes.length) c.append(facts);
+  const foot = h("div", { class: "foot" });
+  foot.append(voteCtl(i));
+  const ja = votesOf(i).ja;
+  if (ja.length) { const w = h("div", { class: "who", title: "Doen mee: " + ja.map(nameOf).join(", ") }); ja.slice(0, 5).forEach(id => w.append(avatar(id))); foot.append(w); }
+  c.append(foot);
+  return c;
+}
+
+/* ---------- view: route (groot → klein) ---------- */
+function routeStrip(ranges) {
+  const strip = h("div", { class: "strip", role: "list", "aria-label": "Route" });
+  ranges.forEach(r => {
+    const seg = h("button", { class: "rseg" + (r.stop.status === "vast" ? "" : " voorstel"), type: "button", role: "listitem", style: `background-color:${r.color};flex:${r.nights} 1 0`,
+      title: `${r.stop.place}: ${r.nights} nachten${r.stop.status === "vast" ? "" : " (nog voorstel)"}`, onclick: () => openStop(r.id) },
+      h("b", {}, r.stop.place), h("span", {}, `${r.nights} n${r.start ? " · " + fmtShort(r.start) : ""}`));
+    strip.append(seg);
+  });
+  return strip;
+}
+function nextStep() {
+  if (!S.trip?.start) return { lvl: 0, text: "Kies jullie vertrekdatum", sub: "Daarna rekent de app alle data van de route uit.", btn: "Reis instellen", go: () => openModal("trip") };
+  if (!S.stops.length) return { lvl: 0, text: "Zet de grove route neer", sub: "Waar slapen jullie en hoeveel nachten? Bijvoorbeeld 3 nachten Lissabon en 5 nachten Albufeira.", btn: "Naar de route", go: () => setTab("route") };
+  const rs = stopRanges();
+  const open = rs.find(r => r.stop.status !== "vast");
+  if (open) return { lvl: 1, text: `Spreek de route af: ${open.stop.place} staat nog open`, sub: `${open.nights} nachten. Stem, schuif met nachten en zet hem vast als iedereen akkoord is.`, btn: "Bekijk etappe", go: () => openStop(open.id) };
+  for (const r of rs) { const f = stopFunnel(r); if (f.stay !== "done") return { lvl: 2, text: f.stays.length ? `Kies en boek het verblijf in ${r.stop.place}` : `Zoek een verblijf in ${r.stop.place}`, sub: `${fmtShort(r.start)} → ${fmtShort(r.end)} · ${ACC[r.stop.accType] || "type nog open"}`, btn: "Verblijf regelen", go: () => openStop(r.id) }; }
+  for (const r of rs) { const f = stopFunnel(r); if (f.act !== "done") return { lvl: 3, text: `Verzamel ideeën voor ${r.stop.place}`, sub: `${f.acts.length} idee${f.acts.length === 1 ? "" : "ën"} voor ${r.nights} dagen.`, btn: `Ideeën voor ${r.stop.place}`, go: () => { S.stopFilter = r.id; setTab("ideas"); } }; }
+  for (const r of rs) { const f = stopFunnel(r); if (f.days !== "done") return { lvl: 4, text: `Maak de dagplanning voor ${r.stop.place}`, sub: `${f.plannedDays} van ${r.nights} dagen gevuld.`, btn: "Naar planning", go: () => { S.planFocus = r.id; setTab("plan"); } }; }
+  return { lvl: 5, text: "Alles staat. Boa viagem!", sub: "Route vast, verblijven geboekt en elke dag gevuld.", btn: null };
+}
+function nextStepCard() {
+  const n = nextStep();
+  const c = h("section", { class: "card next" });
+  const lvl = h("div", { class: "lvl", role: "img", "aria-label": `Stap ${Math.min(n.lvl + 1, 5)} van 5: datum, route, verblijf, activiteiten, dagplanning` });
+  for (let k = 0; k < 5; k++) lvl.append(h("i", { class: k < n.lvl ? "on" : "" }));
+  c.append(h("div", { class: "t" }, h("span", { class: "label" }, "Volgende stap"), h("b", {}, n.text), h("span", { class: "small muted" }, n.sub)), lvl);
+  if (n.btn) c.append(h("button", { class: "btn primary", type: "button", onclick: n.go }, n.btn));
+  return c;
+}
+function nightsCtl(st) {
+  const n = nightsOf(st), locked = st.status === "vast";
+  const w = h("div", { class: "nights", role: "group", "aria-label": `Nachten in ${st.place}`, title: locked ? "Vastgezet. Open de etappe om een wijziging voor te stellen." : "" });
+  w.append(h("button", { type: "button", "aria-label": "Een nacht minder", disabled: locked || n <= 1 || null, onclick: (e) => { e.stopPropagation(); setNights(st, n - 1); } }, "−"),
+           h("b", { class: "num" }, `${n} ${n === 1 ? "nacht" : "nachten"}`),
+           h("button", { type: "button", "aria-label": "Een nacht meer", disabled: locked || null, onclick: (e) => { e.stopPropagation(); setNights(st, n + 1); } }, "+"));
+  return w;
+}
+function stopCard(r, count) {
+  const st = r.stop, f = stopFunnel(r);
+  const c = h("article", { class: "card stop" + (st.status === "vast" ? " vast" : "") });
+  const hd = h("div", { class: "stop-h" });
+  hd.append(h("span", { class: "idx", style: `background:${r.color}` }, String(r.idx + 1)));
+  hd.append(h("div", { class: "stop-t" }, h("button", { class: "linkish", type: "button", onclick: () => openStop(st.id) }, st.place),
+    h("div", { class: "small muted" }, `${r.start ? `${fmtShort(r.start)} → ${fmtShort(r.end)}` : "kies een startdatum voor data"} · ${ACC[st.accType] || "Nog open"}`)));
+  hd.append(nightsCtl(st));
+  const ord = h("div", { class: "ord" });
+  const up = h("button", { class: "iconbtn", type: "button", "aria-label": `${st.place} eerder`, disabled: r.idx === 0 || null, onclick: () => moveStop(st.id, -1) }); up.innerHTML = ic("up");
+  const dn = h("button", { class: "iconbtn", type: "button", "aria-label": `${st.place} later`, disabled: r.idx === count - 1 || null, onclick: () => moveStop(st.id, 1) }); dn.innerHTML = ic("down");
+  ord.append(up, dn); hd.append(ord);
+  c.append(hd);
+  const vr = h("div", { class: "row" });
+  const pill = h("span", { class: "pill " + (st.status === "vast" ? "gepland" : "voorstel") }); pill.innerHTML = (st.status === "vast" ? ic("lock") : "") + (st.status === "vast" ? "Vastgezet" : "Voorstel");
+  vr.append(pill, voteCtl(st, false, "stops"));
+  const nC = commentsFor(st.id).length, nS = openSuggestions(st.id).length;
+  if (nC) vr.append(h("button", { class: "btn small ghost", type: "button", onclick: () => openStop(st.id) }, icEl("chat"), `${nC}${nS ? ` · ${nS} suggestie${nS > 1 ? "s" : ""}` : ""}`));
+  c.append(vr);
+  if (st.note) c.append(h("p", { class: "small muted", style: "margin:0" }, st.note));
+  const fn = h("div", { class: "funnel" });
+  const step = (state, title, b, sub, onclick) => { const e = h("button", { class: "step " + state, type: "button", onclick }); e.innerHTML = `<span class="st"><i></i>${esc(title)}</span>`; e.append(h("b", {}, b), h("span", {}, sub)); return e; };
+  fn.append(
+    step(f.place, "1 · Plek", st.place, st.status === "vast" ? "vastgezet" : "nog voorstel", () => openStop(st.id)),
+    step(f.stay, "2 · Verblijf", f.chosen ? f.chosen.title : f.stays.length ? `${f.stays.length} optie${f.stays.length > 1 ? "s" : ""}` : "nog niets", f.chosen ? (f.chosen.status === "geboekt" ? "geboekt" : "gekozen, nog boeken") : f.stays.length ? "stemmen en kiezen" : "zoek en stel voor", () => openStop(st.id)),
+    step(f.act, "3 · Activiteiten", `${f.acts.length} idee${f.acts.length === 1 ? "" : "ën"}`, `voor ${r.nights} ${r.nights === 1 ? "dag" : "dagen"}`, () => { S.stopFilter = st.id; setTab("ideas"); }),
+    step(f.days, "4 · Dagplanning", r.start ? `${f.plannedDays} / ${r.nights} dagen` : "eerst data", r.start ? "gevuld" : "kies startdatum", () => { S.planFocus = st.id; setTab("plan"); })
+  );
+  c.append(fn);
+  return c;
+}
+function legEl(a, b, date) {
+  const lg = legInfo(a.place, b.place);
+  const el = h("div", { class: "leg" + (lg && lg.hrs > 4 ? " long" : "") });
+  el.innerHTML = ic("car");
+  el.append(`${date ? `Reisdag ${fmtShort(date)}: ` : ""}${a.place} → ${b.place}` + (lg ? `, ± ${fmtHrs(lg.hrs)} rijden (${lg.km} km)${lg.hrs > 4 ? ". Lange rit, overweeg een tussenstop." : ""}` : ", reistijd onbekend"));
+  return el;
+}
+function viewRoute(v) {
+  v.append(h("div", { class: "section-h" }, h("h2", {}, "Route"), h("span", { class: "muted small" }, "Van groot naar klein: eerst waar jullie slapen en hoe lang. Daarna per etappe verblijf, activiteiten en dagplanning.")));
+  if (!S.ready.db) { v.append(h("div", { class: "empty" }, "De route wordt geladen…")); return; }
+  const ranges = stopRanges();
+  const start = S.trip?.start;
+  if (!ranges.length) {
+    const e = h("div", { class: "empty" }, h("h3", {}, "Nog geen route"), h("div", {}, "Begin grof. Kies een opzet of bouw hem zelf op. Daarna kan iedereen stemmen en met nachten schuiven."));
+    const tpl = h("div", { class: "row", style: "justify-content:center;margin-top:14px" });
+    TEMPLATES.forEach(t => tpl.append(h("button", { class: "btn", type: "button", onclick: () => applyTemplate(t) }, t.label)));
+    e.append(tpl, h("div", { class: "row", style: "justify-content:center;margin-top:10px" },
+      h("button", { class: "btn primary", type: "button", onclick: () => openModal("stop") }, icEl("plus"), "Etappe toevoegen"),
+      sample ? h("button", { class: "btn", type: "button", onclick: () => { setTab("ai"); runPreset("route"); } }, icEl("spark"), "Laat Claude een route voorstellen") : null));
+    v.append(e);
+    return;
+  }
+  const sum = h("section", { class: "card route-sum" });
+  const facts = h("div", { class: "facts4" });
+  const n = totalNights();
+  facts.innerHTML = `<div><span class="label">Vertrek</span><b>${start ? esc(fmtShort(start)) : "nog kiezen"}</b></div>
+    <div><span class="label">Nachten</span><b class="num">${n}</b></div>
+    <div><span class="label">Terug</span><b>${start ? esc(fmtShort(tripEnd())) : "—"}</b></div>
+    <div><span class="label">Vast</span><b class="num">${S.stops.filter(st => st.status === "vast").length} / ${S.stops.length}</b></div>`;
+  facts.append(h("span", { class: "spacer" }), h("button", { class: "btn small", type: "button", onclick: () => openModal("trip") }, icEl("cal"), start ? "Datum wijzigen" : "Kies startdatum"));
+  sum.append(facts, routeStrip(ranges));
+  const lg = h("div", { class: "legend" }); lg.innerHTML = `<span><i></i>vastgezet</span><span><i class="striped"></i>nog voorstel</span><span>Breedte = aantal nachten. Tik op een etappe voor details.</span>`;
+  sum.append(lg);
+  v.append(sum);
+  const list = h("div", { class: "stops" });
+  ranges.forEach((r, k) => {
+    if (k > 0) list.append(legEl(ranges[k - 1].stop, r.stop, r.start));
+    list.append(stopCard(r, ranges.length));
+  });
+  v.append(list);
+  v.append(h("div", { class: "row" }, h("button", { class: "btn primary", type: "button", onclick: () => openModal("stop") }, icEl("plus"), "Etappe toevoegen"),
+    sample ? h("button", { class: "btn", type: "button", onclick: () => { setTab("ai"); runPreset("route"); } }, icEl("spark"), "Vraag Claude om een route") : null));
+}
+
+/* ---------- view: ideas ---------- */
+function viewIdeas(v) {
+  v.append(h("div", { class: "section-h" }, h("h2", {}, "Ideeënbord"), h("span", { class: "muted small" }, "Stem met Ja!, Misschien of Nee. Klik op een kaart om te reageren of een wijziging voor te stellen.")));
+  const tb = h("div", { class: "toolbar" });
+  const chips = h("div", { class: "chips", role: "group", "aria-label": "Filter op categorie" });
+  const mk = (id, label, icon) => { const b = h("button", { class: "chip", type: "button", "aria-pressed": String(S.filter === id), onclick: () => { S.filter = id; render(); } }); b.innerHTML = (icon ? ic(icon) : "") + esc(label); return b; };
+  chips.append(mk("alle", "Alles"), mk("mijn", "Nog stemmen"));
+  for (const [k, c] of Object.entries(CATS)) if (S.ideas.some(i => i.category === k)) chips.append(mk(k, c.label, c.icon));
+  const sort = h("select", { class: "sel", id: "sort", "aria-label": "Sorteer" });
+  [["stemmen", "Meeste stemmen"], ["nieuw", "Nieuwste"], ["prijs", "Goedkoopste"]].forEach(([k, l]) => sort.append(h("option", { value: k, selected: S.sort === k || null }, l)));
+  sort.onchange = () => { S.sort = sort.value; render(); };
+  tb.append(chips);
+  if (S.stops.length) {
+    const sf = h("select", { class: "sel", id: "stopf", "aria-label": "Filter op etappe" }, h("option", { value: "alle" }, "Alle etappes"));
+    stopRanges().forEach(r => sf.append(h("option", { value: r.id, selected: S.stopFilter === r.id || null }, `${r.idx + 1}. ${r.stop.place}`)));
+    sf.append(h("option", { value: "geen", selected: S.stopFilter === "geen" || null }, "Zonder etappe"));
+    sf.onchange = () => { S.stopFilter = sf.value; render(); };
+    tb.append(sf);
+  }
+  tb.append(sort);
+  v.append(tb);
+
+  let list = S.ideas.filter(i => S.showClosed || i.status !== "afgevallen");
+  if (S.filter === "mijn") list = list.filter(i => !(i.votes && i.votes[S.me]));
+  else if (S.filter !== "alle") list = list.filter(i => i.category === S.filter);
+  if (S.stopFilter === "geen") list = list.filter(i => !stopOf(i));
+  else if (stopById(S.stopFilter)) list = list.filter(i => stopOf(i)?.id === S.stopFilter);
+  list.sort(S.sort === "nieuw" ? (a, b) => b.createdAt - a.createdAt
+          : S.sort === "prijs" ? (a, b) => (Number(a.cost) || 0) - (Number(b.cost) || 0)
+          : (a, b) => score(b) - score(a) || b.createdAt - a.createdAt);
+  if (!S.ready.db) { v.append(h("div", { class: "empty" }, "Het bord wordt geladen…")); return; }
+  if (!list.length) {
+    const e = h("div", { class: "empty" }, h("h3", {}, S.ideas.length ? "Niets in deze selectie" : "Nog geen voorstellen"),
+      h("div", {}, S.ideas.length ? "Probeer een ander filter." : "Begin met een idee uit de inspiratie hieronder, of laat Claude iets voorstellen."));
+    if (!S.ideas.length) e.append(h("div", { class: "row", style: "justify-content:center;margin-top:12px" },
+      h("button", { class: "btn primary", type: "button", onclick: () => openModal("new") }, "Nieuw voorstel"),
+      h("button", { class: "btn", type: "button", onclick: () => { setTab("ai"); runPreset("ideas"); } }, icEl("spark"), "Vraag Claude")));
+    v.append(e);
+  } else {
+    const g = h("div", { class: "grid" });
+    const best = S.sort === "stemmen" && score(list[0]) > 0 ? list[0].id : null;
+    list.forEach(i => g.append(ideaCard(i, i.id === best)));
+    v.append(g);
+  }
+  const closed = S.ideas.filter(i => i.status === "afgevallen").length;
+  if (closed) v.append(h("div", {}, h("button", { class: "btn small ghost", type: "button", onclick: () => { S.showClosed = !S.showClosed; render(); } }, S.showClosed ? "Verberg afgevallen ideeën" : `Toon ${closed} afgevallen idee${closed > 1 ? "ën" : ""}`)));
+
+  v.append(h("div", { class: "section-h", style: "margin-top:8px" }, h("h2", {}, "Inspiratie"), h("span", { class: "muted small" }, "Bekende plekken. Eén tik en het staat op het bord.")));
+  v.append(regionGrid());
+}
+function regionGrid() {
+  const g = h("div", { class: "regions" });
+  REGIONS.forEach(r => {
+    const c = h("div", { class: "card region" });
+    c.append(h("span", { class: "label" }, r.tag), h("h3", {}, r.name), h("p", {}, r.text));
+    r.ideas.forEach(idea => {
+      const exists = S.ideas.some(i => i.title === idea.title);
+      c.append(h("button", { class: "mini", type: "button", disabled: exists || null, onclick: () => addIdea(idea) },
+        icEl(CATS[idea.category].icon), h("b", {}, idea.title), h("span", { class: "small muted" }, exists ? "op het bord" : "+ voorstellen")));
+    });
+    g.append(c);
+  });
+  return g;
+}
+
+/* ---------- view: plan ---------- */
+function viewPlan(v) {
+  const days = tripDays();
+  v.append(h("div", { class: "section-h" }, h("h2", {}, "Dag voor dag"), h("span", { class: "muted small" }, "Sleep een idee naar een dag, of open het en kies een dag.")));
+  if (!days.length) {
+    const e = h("div", { class: "empty" }, h("h3", {}, "Nog geen reisdata"), h("div", {}, "Stel de data in om een dagplanning te krijgen."));
+    e.append(h("div", { style: "margin-top:12px" }, h("button", { class: "btn primary", type: "button", onclick: () => openModal("trip") }, "Reis instellen")));
+    v.append(e); return;
+  }
+  const wrap = h("div", { class: "plan" });
+  const pool = h("aside", { class: "card pool" });
+  const ord = (i) => { const st = stopOf(i); return st ? sortedStops().indexOf(st) : 99; };
+  const unplanned = S.ideas.filter(i => i.status === "voorstel" && !i.day && i.category !== "verblijf").sort((a, b) => ord(a) - ord(b) || score(b) - score(a));
+  pool.append(h("div", { class: "label" }, `Nog in te plannen (${unplanned.length})`));
+  if (!unplanned.length) pool.append(h("div", { class: "small muted" }, "Alles met stemmen staat ingepland. Mooi."));
+  unplanned.forEach(i => {
+    const m = h("div", { class: "mini", draggable: "true", onclick: () => openIdea(i.id) });
+    m.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", i.id); });
+    const st = stopOf(i);
+    m.append(icEl(CATS[i.category]?.icon || "dots"), h("b", {}, i.title));
+    if (st) m.append(h("i", { class: "dot", title: st.place, style: `background:${stopColor(st.id)}` }));
+    pool.append(m);
+  });
+  pool.append(h("button", { class: "btn small", type: "button", style: "margin-top:6px", onclick: () => { setTab("ai"); runPreset("plan"); } }, icEl("spark"), "Laat Claude een dagplanning maken"));
+  wrap.append(pool);
+
+  const list = h("div", { class: "days" });
+  const ranges = stopRanges();
+  days.forEach((d, idx) => {
+    const dd = parseDate(d);
+    const r = rangeForDay(d, ranges);
+    const first = r && daysBetween(S.trip.start, d) === r.from;
+    if (first) list.append(stopBand(r));
+    const items = S.ideas.filter(i => i.day === d && i.status !== "afgevallen").sort((a, b) => (a.time || "99").localeCompare(b.time || "99"));
+    const day = h("section", { class: "card day" });
+    day.addEventListener("dragover", e => { e.preventDefault(); day.classList.add("drop-ok"); });
+    day.addEventListener("dragleave", () => day.classList.remove("drop-ok"));
+    day.addEventListener("drop", e => { e.preventDefault(); day.classList.remove("drop-ok"); const id = e.dataTransfer.getData("text/plain"); if (id) patchIdea(id, { day: d, stopId: r?.id || "", status: S.ideas.find(i => i.id === id)?.status === "geboekt" ? "geboekt" : "gepland" }, `Ingepland op ${fmtShort(d)}`); });
+    const hd = h("div", { class: "day-h" });
+    let sub = `Dag ${idx + 1}`;
+    if (idx === 0) sub += r ? ` · aankomst ${r.stop.place}` : " · aankomst";
+    else if (idx === days.length - 1) sub += " · vertrek";
+    else if (first && r.idx > 0) { const prev = ranges[r.idx - 1].stop.place; const lg = legInfo(prev, r.stop.place); sub += ` · reisdag ${prev} → ${r.stop.place}${lg ? ` (± ${fmtHrs(lg.hrs)})` : ""}`; }
+    hd.innerHTML = `<span class="dnum num"${r ? ` style="color:${r.color}"` : ""}>${dd.getDate()}</span><div style="min-width:0"><div class="dname">${esc(DOWL[dd.getDay()])}</div><div class="small muted">${esc(sub)}</div></div>`;
+    day.append(hd);
+    if (!items.length) day.append(h("div", { class: "none" }, r && r.idx > 0 && first ? "Reisdag. Nog vrij voor iets onderweg." : "Nog vrij. Sleep een idee hierheen of open er een."));
+    items.forEach(i => {
+      const sl = h("div", { class: "slot", tabindex: "0", onclick: () => openIdea(i.id), onkeydown: (e) => { if (e.key === "Enter") openIdea(i.id); } });
+      sl.append(h("span", { class: "time" }, i.time || "—"));
+      const w = h("div", { class: "what" }, h("b", {}, i.title));
+      const meta = [CATS[i.category]?.label, i.place, i.cost ? euro(i.cost) + " p.p." : null].filter(Boolean).join(" · ");
+      w.append(h("span", { class: "small muted" }, meta));
+      sl.append(w);
+      const ja = votesOf(i).ja; const who = h("div", { class: "who" }); ja.slice(0, 4).forEach(id => who.append(avatar(id)));
+      sl.append(who, h("span", { class: "pill " + i.status }, STATUS[i.status]));
+      day.append(sl);
+    });
+    list.append(day);
+  });
+  wrap.append(list);
+  v.append(wrap);
+  if (S.planFocus) { const id = S.planFocus; S.planFocus = null; requestAnimationFrame(() => document.getElementById("band-" + id)?.scrollIntoView({ block: "start" })); }
+}
+function stopBand(r) {
+  const f = stopFunnel(r);
+  const band = h("div", { class: "stop-band", id: "band-" + r.id }, h("i", { class: "dot", style: `background:${r.color}` }), h("h3", {}, r.stop.place),
+    h("span", { class: "small muted" }, `${r.nights} ${r.nights === 1 ? "nacht" : "nachten"}${r.start ? ` · ${fmtShort(r.start)} → ${fmtShort(r.end)}` : ""}`));
+  if (f.chosen) { const p = h("span", { class: "pill " + f.chosen.status }); p.innerHTML = ic("bed") + esc(f.chosen.title); band.append(p); }
+  band.append(h("span", { class: "spacer" }), h("button", { class: "btn small ghost", type: "button", onclick: () => openStop(r.id) }, "Etappe"));
+  return band;
+}
+
+/* ---------- view: book ---------- */
+function bookingLinks(opts = {}) {
+  const t = S.trip || {};
+  const destOf = (pl) => placeInfo(pl)?.q || `${pl}, Portugal`;
+  const first = sortedStops()[0];
+  const dest = opts.place ? destOf(opts.place) : first ? destOf(first.place) : (t.base ? destOf(t.base) : "Algarve, Portugal");
+  const a = opts.checkin || t.start, b = opts.checkout || tripEnd(), n = groupSize();
+  const HT = { villa: 213, appartement: 201, hotel: 204 };
+  const nflt = HT[opts.accType] ? `&nflt=ht_id%3D${HT[opts.accType]}` : "";
+  const rooms = Math.max(1, Math.ceil(n / 2));
+  const yy = (s) => s ? s.slice(2).replace(/-/g, "") : "";
+  const from = (t.from || "AMS").toLowerCase();
+  const q = encodeURIComponent(opts.q || dest);
+  return {
+    booking: `https://www.booking.com/searchresults.nl.html?ss=${encodeURIComponent(dest)}${a ? `&checkin=${a}` : ""}${b ? `&checkout=${b}` : ""}&group_adults=${n}&no_rooms=${opts.accType === "villa" ? 1 : rooms}&group_children=0${nflt}`,
+    airbnb: `https://www.airbnb.nl/s/${encodeURIComponent(dest.replace(/, /g, "--").replace(/ /g, "-"))}/homes?adults=${n}${a ? `&checkin=${a}` : ""}${b ? `&checkout=${b}` : ""}`,
+    skyscanner: a && b ? `https://www.skyscanner.nl/transport/vluchten/${from}/fao/${yy(a)}/${yy(b)}/?adultsv2=${n}` : `https://www.skyscanner.nl/transport/vluchten/${from}/fao/`,
+    gflights: `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${from.toUpperCase()} to FAO${a ? ` on ${a}` : ""}${b ? ` through ${b}` : ""}`)}`,
+    cars: `https://www.booking.com/cars/index.nl.html`,
+    gyg: `https://www.getyourguide.nl/s/?q=${q}`,
+    tripadvisor: `https://www.tripadvisor.nl/Search?q=${q}`,
+    maps: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(opts.q ? `${opts.q} ${opts.place || "Algarve"}` : dest)}`
+  };
+}
+function viewBook(v) {
+  const t = S.trip || {};
+  v.append(h("div", { class: "section-h" }, h("h2", {}, "Boeken"), h("span", { class: "muted small" }, "Links openen bij de aanbieder, met jullie data en groepsgrootte alvast ingevuld.")));
+  const f = h("div", { class: "card tripform" });
+  const rs = stopRanges();
+  const inA = rs.length ? nearestAirport(rs[0].stop.place) : "FAO", outA = rs.length ? nearestAirport(rs[rs.length - 1].stop.place) : "FAO";
+  const from = (t.from || "AMS").toUpperCase();
+  f.innerHTML = `<div><span class="label">Data</span><div><b>${t.start ? esc(fmtShort(t.start) + " – " + fmtShort(tripEnd())) : "nog niet gekozen"}</b></div></div>
+    <div><span class="label">${rs.length ? "Route" : "Uitvalsbasis"}</span><div><b>${esc(rs.length ? routeText() : t.base || "Algarve")}</b></div></div>
+    <div><span class="label">Personen</span><div><b class="num">${groupSize()}</b></div></div>
+    <div><span class="label">Vluchten</span><div><b>${esc(inA === outA ? `${from} ⇄ ${inA}` : `${from} → ${inA}, ${outA} → ${from}`)}</b></div></div>`;
+  f.append(h("button", { class: "btn", type: "button", onclick: () => openModal("trip") }, icEl("edit"), "Aanpassen"));
+  v.append(f);
+  const L = bookingLinks();
+  const yy = (x) => x ? x.slice(2).replace(/-/g, "") : "";
+  const n = groupSize(), end = tripEnd();
+  const oneWay = (o, d, date) => date ? `https://www.skyscanner.nl/transport/vluchten/${o.toLowerCase()}/${d.toLowerCase()}/${yy(date)}/?adultsv2=${n}` : `https://www.skyscanner.nl/transport/vluchten/${o.toLowerCase()}/${d.toLowerCase()}/`;
+  const gOne = (o, d, date) => `https://www.google.com/travel/flights?q=${encodeURIComponent(`One way flights from ${o} to ${d}${date ? ` on ${date}` : ""}`)}`;
+  const flightCards = inA === outA
+    ? [["plane", "Skyscanner", `Retour ${from} ⇄ ${AIRPORT_NAME[inA]} vergelijken.`, t.start && end ? `https://www.skyscanner.nl/transport/vluchten/${from.toLowerCase()}/${inA.toLowerCase()}/${yy(t.start)}/${yy(end)}/?adultsv2=${n}` : oneWay(from, inA)],
+       ["plane", "Google Flights", "Prijsgrafiek per dag, handig om data te schuiven.", `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${from} to ${inA}${t.start ? ` on ${t.start}` : ""}${end ? ` through ${end}` : ""}`)}`]]
+    : [["plane", `Heen: ${from} → ${AIRPORT_NAME[inA]}`, `Enkele reis ${t.start ? fmtShort(t.start) : ""}. Jullie route begint in ${rs[0].stop.place}.`, oneWay(from, inA, t.start)],
+       ["plane", `Terug: ${AIRPORT_NAME[outA]} → ${from}`, `Enkele reis ${end ? fmtShort(end) : ""}. Scheelt de rit terug naar ${AIRPORT_NAME[inA]}.`, oneWay(outA, from, end)],
+       ["plane", "Google Flights", "Beide enkele reizen naast elkaar vergelijken.", gOne(from, inA, t.start)]];
+  const cards = [
+    ...flightCards,
+    ["car", "Huurauto", inA === outA ? "Via Booking.com Cars. In de Algarve is een auto bijna onmisbaar." : `Ophalen in ${AIRPORT_NAME[inA]}, inleveren in ${AIRPORT_NAME[outA]}. Reken op een toeslag voor enkele reis.`, L.cars],
+    ["ticket", "GetYourGuide", "Boottochten, kajak, surfles en dagtrips.", L.gyg],
+    ["fork", "Tripadvisor", "Restaurants en reviews in de buurt.", L.tripadvisor],
+    ["map", "Google Maps", "Kaart van jullie eerste bestemming.", L.maps]
+  ];
+  const g = h("div", { class: "book-grid" });
+  cards.forEach(([icon, name, txt, href]) => {
+    const a = h("a", { class: "card bk", href, target: "_blank", rel: "noopener" });
+    a.innerHTML = `<div class="bk-h">${ic(icon)}${esc(name)}</div><p>${esc(txt)}</p><span class="go">Openen ↗</span>`;
+    g.append(a);
+  });
+  v.append(g);
+
+  if (rs.length) {
+    v.append(h("div", { class: "section-h", style: "margin-top:8px" }, h("h2", {}, "Verblijf per etappe"), h("span", { class: "muted small" }, "Zoeklinks met de data van elke etappe. Plak wat je vindt als voorstel; de groep stemt.")));
+    const box = h("div", { class: "etappes" });
+    rs.forEach(r => {
+      const f = stopFunnel(r), st = r.stop;
+      const BL = bookingLinks({ place: st.place, checkin: r.start, checkout: r.end, accType: st.accType });
+      const row = h("div", { class: "card etappe-row" });
+      row.append(h("i", { class: "dot", style: `background:${r.color};width:12px;height:12px` }));
+      row.append(h("div", { class: "t" }, h("b", {}, `${st.place} · ${r.nights} ${r.nights === 1 ? "nacht" : "nachten"}`),
+        h("div", { class: "small muted" }, `${r.start ? fmtShort(r.start) + " → " + fmtShort(r.end) + " · " : ""}${ACC[st.accType] || "Nog open"} · ${f.chosen ? (f.chosen.status === "geboekt" ? "geboekt: " : "gekozen: ") + f.chosen.title : f.stays.length ? f.stays.length + " optie(s) om op te stemmen" : "nog geen opties"}`)));
+      row.append(h("div", { class: "row" },
+        h("a", { class: "btn small", href: BL.booking, target: "_blank", rel: "noopener" }, "Booking.com"),
+        h("a", { class: "btn small", href: BL.airbnb, target: "_blank", rel: "noopener" }, "Airbnb"),
+        h("button", { class: "btn small primary", type: "button", onclick: () => openStop(st.id) }, f.chosen ? "Bekijk" : f.stays.length ? "Kiezen" : "Voorstellen")));
+      box.append(row);
+    });
+    v.append(box);
+  }
+  const stays = S.ideas.filter(i => i.category === "verblijf" && i.status !== "afgevallen" && !(rs.length && stopOf(i))).sort((a, b) => score(b) - score(a));
+  if (rs.length && !stays.length) return;
+  v.append(h("div", { class: "section-h", style: "margin-top:8px" }, h("h2", {}, rs.length ? "Verblijf zonder etappe" : "Verblijf-stemming"), h("span", { class: "muted small" }, rs.length ? "Deze voorstellen hangen nog aan geen etappe. Open ze en kies een etappe." : "Plak een link van Booking.com of Airbnb als voorstel. De groep stemt, de winnaar boek je.")));
+  if (!stays.length) {
+    v.append(h("div", { class: "empty" }, h("h3", {}, "Nog geen verblijf voorgesteld"), h("div", {}, "Vond je iets moois? Zet het op het bord met de link erbij."),
+      h("div", { style: "margin-top:12px" }, h("button", { class: "btn primary", type: "button", onclick: () => openModal("new", { category: "verblijf" }) }, "Verblijf voorstellen"))));
+  } else {
+    const gg = h("div", { class: "grid" }); stays.forEach((i, n) => gg.append(ideaCard(i, n === 0 && score(i) > 0))); v.append(gg);
+  }
+}
+
+/* ---------- view: Claude ---------- */
+function tripContext() {
+  const t = S.trip || {};
+  const lines = [
+    `Reis: ${t.name || "Algarve"}; data: ${t.start || "onbekend"} t/m ${tripEnd() || "onbekend"}; ${S.stops.length ? "" : `uitvalsbasis: ${t.base || "nog niet gekozen"}; `}groep: ${groupSize()} personen; budget p.p.: ${t.budget ? "€" + t.budget : "onbekend"}; vertrek vanaf: ${(t.from || "AMS").toUpperCase()}.`,
+    t.notes ? `Wensen van de groep: ${t.notes}` : "",
+    S.stops.length ? "Route (etappes in volgorde):" : "Route: nog geen etappes.",
+    ...stopRanges().map(r => { const f = stopFunnel(r); const v = votesOf(r.stop); return `${r.idx + 1}. ${r.stop.place}, ${r.nights} nachten${r.start ? ` (${r.start} → ${r.end})` : ""}; verblijf: ${ACC[r.stop.accType] || "open"}${f.chosen ? ` – ${f.chosen.title} (${f.chosen.status})` : ""}; status: ${r.stop.status}; stemmen ${v.ja.length}/${v.mis.length}/${v.nee.length}`; }),
+    "Ideeën op het bord (titel | categorie | status | dag | plaats | kosten p.p. | stemmen ja/misschien/nee):"
+  ];
+  S.ideas.slice(0, 80).forEach(i => {
+    const v = votesOf(i);
+    lines.push(`- ${i.title} | ${i.category} | ${i.status} | ${i.day || "-"} ${i.time || ""} | ${i.place || "-"}${stopOf(i) ? ` (etappe ${stopOf(i).place})` : ""} | ${i.cost ?? "-"} | ${v.ja.length}/${v.mis.length}/${v.nee.length}`);
+  });
+  const recent = [...S.comments].sort((a, b) => b.createdAt - a.createdAt).slice(0, 30);
+  if (recent.length) {
+    lines.push("Recente reacties (op idee):");
+    recent.forEach(c => { const i = S.ideas.find(x => x.id === c.ideaId), st = stopById(c.stopId); const what = i ? i.title : st ? "etappe " + st.place : null; if (what) lines.push(`- [${what}] ${c.kind}: ${(c.text || "").slice(0, 200)}${c.changes ? " (wijziging: " + JSON.stringify(c.changes) + ")" : ""}`); });
+  }
+  return lines.filter(Boolean).join("\n");
+}
+const PRESETS = {
+  route: { icon: "route", title: "Stel een route voor", sub: "Grove opzet: welke plekken, hoeveel nachten", json: "route",
+    prompt: () => {
+      const n = totalNights() || (S.trip?.start && S.trip?.end ? daysBetween(S.trip.start, S.trip.end) : 0);
+      return `Je bent een reisplanner die Portugal goed kent. Stel een grove route voor deze groepsreis: welke plaatsen als uitvalsbasis, in welke volgorde en hoeveel nachten per plek. ${n ? `Totaal precies ${n} nachten.` : "Totaal 7 tot 10 nachten."} Houd rekening met reistijd tussen plekken, de vluchten (Lissabon of Faro) en wat de groep leuk vindt. Liever weinig verhuizingen: maximaal 4 etappes.
+
+${tripContext()}
+
+Antwoord met alleen een JSON-array van objecten: {"place": string (plaatsnaam, bij voorkeur een van: ${Object.keys(PLACES).join(", ")}), "nights": number, "accType": één van ${Object.keys(ACC).join("|")}, "why": string (max 1 zin, Nederlands)}.`;
+    } },
+  ideas: { icon: "bulb", title: "Nieuwe ideeën", sub: "5 voorstellen die passen bij wat de groep leuk vindt", json: true,
+    prompt: () => `Je bent een reisplanner die de Algarve (Portugal) goed kent. Hieronder staat de groepsreis.\n\n${tripContext()}\n\nStel 5 NIEUWE ideeën voor die nog niet op het bord staan en passen bij wat de groep positief stemt. Houd rekening met het seizoen en de groepsgrootte. Gebruik bestaande, echte plekken. Antwoord met alleen een JSON-array van objecten: {"title": string (kort, Nederlands), "category": één van ${Object.keys(CATS).join("|")}, "place": string, "cost": number (euro per persoon, 0 als gratis), "description": string (max 2 zinnen, Nederlands, praktisch)}.` },
+  plan: { icon: "cal", title: "Maak een dagplanning", sub: "Verdeelt de favorieten logisch over de dagen", prompt: () => `Je bent een reisplanner die de Algarve goed kent. Maak een dag-voor-dag-planning voor deze groepsreis. Gebruik vooral ideeën met veel ja-stemmen, groepeer op regio om rijtijd te beperken, laat ruimte voor strand en luieren, en noem per dag ochtend, middag en avond. Vul gaten met een kort eigen voorstel en markeer dat met (nieuw). Schrijf in het Nederlands, kort en scanbaar met kopjes per dag.\n\n${tripContext()}` },
+  summary: { icon: "chat", title: "Wat is er besloten?", sub: "Samenvatting van stemmen en discussies", prompt: () => `Vat de stand van deze groepsreis samen in het Nederlands, zoals je dat in een groepsapp zou willen lezen. Drie kopjes: "Besloten" (geboekt of duidelijk veel ja), "Nog open" (twijfel of verdeelde stemmen, met wat er nodig is om te beslissen), "Te doen" (concrete acties zoals boeken, met deadline-advies). Kort en zonder omhaal.\n\n${tripContext()}` },
+  rain: { icon: "rain", title: "Plan B bij slecht weer", sub: "Binnen- en regenactiviteiten in de buurt", prompt: () => `Geef een plan B voor een regenachtige of winderige dag in de Algarve voor deze groep: 5 concrete activiteiten binnen of beschut, met plaats, ongeveer de kosten per persoon en waarom het leuk is voor een vriendengroep. Nederlands, kort.\n\n${tripContext()}` },
+  budget: { icon: "euro", title: "Budgetcheck", sub: "Wat kost dit per persoon, waar kan het goedkoper?", prompt: () => `Maak een realistische kosteninschatting per persoon voor deze reis: verblijf, vlucht, huurauto (gedeeld), eten en drinken per dag, en de ingeplande activiteiten. Geef een totaal en 3 concrete bespaartips voor de Algarve. Nederlands, compact, gebruik euro's.\n\n${tripContext()}` }
+};
+function viewAI(v) {
+  v.append(h("div", { class: "section-h" }, h("h2", {}, "Vraag Claude"), h("span", { class: "muted small" }, "Claude kent jullie bord, stemmen en reacties. Antwoorden kun je direct als voorstel op het bord zetten.")));
+  const wrap = h("div", { class: "ai" });
+  const pre = h("div", { class: "presets" });
+  for (const [k, p] of Object.entries(PRESETS)) {
+    const b = h("button", { class: "preset", type: "button", disabled: S.aiBusy || null, onclick: () => runPreset(k) });
+    b.innerHTML = ic(p.icon) + `<div><b>${esc(p.title)}</b><span>${esc(p.sub)}</span></div>`;
+    pre.append(b);
+  }
+  wrap.append(pre);
+  const chat = h("section", { class: "card chat" });
+  const msgs = h("div", { class: "msgs", id: "msgs", "aria-live": "polite" });
+  if (!S.chat.length) msgs.append(h("div", { class: "muted", style: "margin:auto;text-align:center;max-width:36ch" },
+    sample === null && S.ready.sample ? (STANDALONE ? "Claude is hier niet beschikbaar. Controleer je verbinding." : "Claude is in deze weergave niet beschikbaar. Open de reis op claude.ai om Claude te gebruiken.") : "Kies links een vraag, of typ zelf iets. Bijvoorbeeld: welk strand is het mooist voor een groep van 8 met kinderen?"));
+  S.chat.forEach((m, idx) => msgs.append(renderMsg(m, idx)));
+  chat.append(msgs);
+  const comp = h("form", { class: "composer", onsubmit: (e) => { e.preventDefault(); const ta = $("#ask"); const q = ta.value.trim(); if (!q) return; ta.value = ""; askFree(q); } });
+  const ta = h("textarea", { id: "ask", rows: "1", placeholder: "Vraag iets over jullie reis…", "aria-label": "Vraag aan Claude", disabled: (S.ready.sample && !sample) || null });
+  ta.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); comp.requestSubmit(); } });
+  comp.append(ta);
+  if (S.aiBusy) comp.append(h("button", { class: "btn", type: "button", onclick: () => aiCtl?.abort() }, "Stop"));
+  else { const sb = h("button", { class: "btn primary", type: "submit", "aria-label": "Verstuur" }); sb.innerHTML = ic("send"); comp.append(sb); }
+  chat.append(comp);
+  wrap.append(chat);
+  v.append(wrap);
+  requestAnimationFrame(() => { const m = $("#msgs"); if (m) m.scrollTop = m.scrollHeight; });
+}
+function mdLite(text) {
+  // tiny, safe markdown: headings, bullets, bold, paragraphs
+  const lines = esc(text).split("\n"); let out = "", inList = false;
+  for (let l of lines) {
+    l = l.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+    if (/^\s*[-*•]\s+/.test(l)) { if (!inList) { out += "<ul>"; inList = true; } out += `<li>${l.replace(/^\s*[-*•]\s+/, "")}</li>`; continue; }
+    if (inList) { out += "</ul>"; inList = false; }
+    if (/^#{1,4}\s+/.test(l)) out += `<h4>${l.replace(/^#{1,4}\s+/, "")}</h4>`;
+    else if (l.trim()) out += `<p>${l}</p>`;
+  }
+  if (inList) out += "</ul>";
+  return out;
+}
+function renderMsg(m, idx) {
+  if (m.role === "user") return h("div", { class: "msg me" }, m.label || m.content);
+  const wrap = h("div", { class: "msg bot" });
+  const b = h("div", { class: "bubble" });
+  if (m.pending && !m.content) b.innerHTML = `<span class="thinking" aria-label="Claude denkt na"><i></i><i></i><i></i></span>`;
+  else if (m.cards || m.route) b.innerHTML = `<p>${esc(m.content)}</p>`;
+  else b.innerHTML = mdLite(m.content);
+  if (m.error) b.append(h("div", { class: "small", style: "color:var(--no);margin-top:6px" }, m.error));
+  wrap.append(b);
+  if (m.cards) {
+    const g = h("div", { class: "sugg-cards" });
+    m.cards.forEach((c, ci) => {
+      const card = h("div", { class: "card sugg" });
+      const cat = h("span", { class: "cat" }); cat.innerHTML = ic(CATS[c.category]?.icon || "dots") + esc(CATS[c.category]?.label || "Overig");
+      card.append(cat, h("b", {}, c.title), h("p", {}, c.description || ""), h("span", { class: "small muted num" }, [c.place, c.cost != null ? (c.cost == 0 ? "gratis" : euro(c.cost) + " p.p.") : null].filter(Boolean).join(" · ")));
+      const added = c.added || S.ideas.some(i => i.title === c.title);
+      card.append(h("button", { class: "btn small" + (added ? "" : " primary"), type: "button", disabled: added || null, onclick: async () => {
+        const ok = await addIdea({ ...c, author: "claude" }); if (ok) { c.added = true; render(); }
+      } }, added ? "Op het bord" : "Zet op het bord"));
+      g.append(card);
+    });
+    wrap.append(g);
+  }
+  if (m.route) wrap.append(routeSuggestion(m));
+  if (!m.pending && !m.cards && !m.route && m.content && idx === S.chat.length - 1) {
+    wrap.append(h("div", { class: "row", style: "margin-top:6px" }, h("button", { class: "btn small ghost", type: "button", onclick: () => copyText(m.content) }, icEl("copy"), "Kopieer")));
+  }
+  return wrap;
+}
+function routeSuggestion(m) {
+  const box = h("div", { class: "route-cards" });
+  m.route.forEach(x => {
+    const exists = S.stops.some(st => samePlace(st.place, x.place));
+    const card = h("div", { class: "card stay-row" });
+    card.append(h("div", { class: "t" }, h("b", {}, `${x.nights} ${x.nights === 1 ? "nacht" : "nachten"} ${x.place}`), h("div", { class: "small muted" }, `${ACC[x.accType]}${x.why ? " · " + x.why : ""}`)));
+    card.append(h("button", { class: "btn small", type: "button", disabled: exists || null, onclick: async () => { await changeRoute({}, `${x.place} toegevoegd aan de route`, [newStop({ ...x, createdBy: "claude" }, maxOrder() + 1)]); } }, exists ? "Op de route" : "+ Toevoegen"));
+    box.append(card);
+  });
+  const take = () => {
+    const del = Object.fromEntries(S.stops.map(st => [st.id, { __delete: true }]));
+    return changeRoute(del, "Route overgenomen", m.route.map((x, k) => newStop({ ...x, createdBy: "claude" }, k + 1)));
+  };
+  const row = h("div", { class: "row" });
+  if (m.confirm) row.append(h("div", { class: "confirm" }, `Vervangt de huidige route (${S.stops.length} etappe${S.stops.length > 1 ? "s" : ""}). Ideeën schuiven mee naar dezelfde plaats.`, h("span", { class: "spacer" }),
+    h("button", { class: "btn small", type: "button", onclick: () => { m.confirm = false; render(); } }, "Annuleer"),
+    h("button", { class: "btn small primary", type: "button", onclick: async () => { m.confirm = false; if (await take()) setTab("route"); } }, "Vervang route")));
+  else row.append(h("button", { class: "btn small primary", type: "button", onclick: async () => { if (S.stops.length) { m.confirm = true; render(); } else if (await take()) setTab("route"); } }, icEl("route"), "Neem deze route over"));
+  box.append(row);
+  return box;
+}
+function aiErr(e) {
+  switch (e?.code) {
+    case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
+      return STANDALONE ? "Claude is op deze site nog niet ingesteld. De organisator moet een Anthropic API-sleutel toevoegen in Cloudflare." : "Claude is niet toegestaan voor deze pagina. Je kunt dit wijzigen via het menu Machtigingen van de artifact.";
+    case "rate_limited": return STANDALONE ? "Het daglimiet voor Claude-vragen is bereikt, of het is even te druk. Probeer het later opnieuw." : "Even te veel vragen achter elkaar. Probeer het over een minuut opnieuw.";
+    case "session_expired": return "Je sessie is verlopen. Log opnieuw in op claude.ai.";
+    case "refused": return "Claude wilde hier niet op antwoorden. Formuleer de vraag anders.";
+    case "invalid_json": return "Het antwoord kwam niet in het goede formaat terug. Probeer het nog een keer.";
+    case "cancelled": return "";
+    default: return "Er ging iets mis met de verbinding. Probeer het opnieuw.";
+  }
+}
+async function runPreset(key) {
+  const p = PRESETS[key];
+  if (!sample) { toast("Claude is hier niet beschikbaar."); return; }
+  if (S.aiBusy) return;
+  S.chat.push({ role: "user", content: p.title, label: p.title });
+  const msg = { role: "assistant", content: "", pending: true };
+  S.chat.push(msg); S.aiBusy = true; render();
+  aiCtl = new AbortController();
+  try {
+    if (p.json === "route") {
+      const arr = await sample.json(p.prompt(), { signal: aiCtl.signal, cache: false });
+      const route = (Array.isArray(arr) ? arr : []).filter(x => x && x.place).slice(0, 6).map(x => ({
+        place: placeInfo(x.place)?.key || String(x.place).slice(0, 60), nights: Math.max(1, Math.min(30, Math.round(Number(x.nights) || 1))),
+        accType: ACC[x.accType] ? x.accType : "open", why: String(x.why || "").slice(0, 200)
+      }));
+      msg.content = route.length ? `Mijn voorstel: ${route.map(r => `${r.nights}n ${r.place}`).join(" → ")}.` : "Ik kon geen bruikbare route maken. Probeer het nog eens.";
+      msg.route = route.length ? route : null;
+    } else if (p.json) {
+      const arr = await sample.json(p.prompt(), { signal: aiCtl.signal, cache: false });
+      const cards = (Array.isArray(arr) ? arr : []).filter(x => x && x.title).slice(0, 8).map(x => ({
+        title: String(x.title).slice(0, 90), category: CATS[x.category] ? x.category : "overig",
+        place: String(x.place || "").slice(0, 60), cost: isNaN(Number(x.cost)) ? null : Number(x.cost), description: String(x.description || "").slice(0, 300)
+      }));
+      msg.content = cards.length ? "Dit zijn mijn voorstellen. Zet op het bord wat je de groep wilt voorleggen:" : "Ik kon geen bruikbare voorstellen maken. Probeer het nog eens.";
+      msg.cards = cards.length ? cards : null;
+    } else {
+      const { truncated } = await sample(p.prompt(), { signal: aiCtl.signal, cache: false, onText: ({ text }) => { msg.content = text; msg.pending = false; updateLastMsg(); } });
+      if (truncated) msg.error = "Het antwoord is afgekapt. Vraag om een kortere versie.";
+    }
+  } catch (e) {
+    msg.content = e?.text || msg.content; msg.error = aiErr(e);
+    if (!msg.content && !msg.error) { S.chat.pop(); S.chat.pop(); }
+  } finally { msg.pending = false; S.aiBusy = false; render(); }
+}
+async function askFree(q) {
+  if (!sample) { toast("Claude is hier niet beschikbaar."); return; }
+  if (S.aiBusy) return;
+  const rules = `Je helpt een vriendengroep met het plannen van een reis naar de Algarve in Portugal. Antwoord in het Nederlands, kort en praktisch. Verwijs naar echte plekken. Hier is de actuele stand van hun gezamenlijke planning:\n\n${tripContext()}`;
+  S.chat.push({ role: "user", content: q });
+  const msg = { role: "assistant", content: "", pending: true };
+  S.chat.push(msg); S.aiBusy = true; render();
+  const turns = S.chat.filter(m => !m.pending && m.content && !m.cards && !m.route && !m.label).slice(-10).map(m => ({ role: m.role, content: m.content }));
+  aiCtl = new AbortController();
+  try {
+    await sample([{ role: "user", content: rules }, ...turns], { signal: aiCtl.signal, cache: false, onText: ({ text }) => { msg.content = text; msg.pending = false; updateLastMsg(); } });
+  } catch (e) { msg.content = e?.text || msg.content; msg.error = aiErr(e); }
+  finally { msg.pending = false; S.aiBusy = false; render(); }
+}
+function updateLastMsg() {
+  const box = $("#msgs"); if (!box || S.tab !== "ai") return;
+  const last = box.lastElementChild; const idx = S.chat.length - 1;
+  if (last) last.replaceWith(renderMsg(S.chat[idx], idx));
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ---------- overlay: idea sheet & forms ---------- */
+function openIdea(id) { S.open = id; S.openStop = null; S.modal = null; renderOverlay(); }
+function openStop(id) { S.openStop = id; S.open = null; S.modal = null; renderOverlay(); }
+function openModal(kind, preset = {}) {
+  S.modal = kind; S.editDraft = preset;
+  if (kind !== "edit") S.open = null;
+  renderOverlay();
+}
+function closeOverlay() { S.open = null; S.openStop = null; S.modal = null; renderOverlay(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && (S.open || S.modal || S.openStop)) closeOverlay(); });
+
+let lastOverlayKey = "";
+function renderOverlay() {
+  const o = $("#overlay");
+  const key = S.modal ? "m:" + S.modal : S.open ? "i:" + S.open : S.openStop ? "s:" + S.openStop : "";
+  // keep typed text in comment box across live updates
+  const draft = $("#cmt-text")?.value;
+  const hadFocus = document.activeElement?.id === "cmt-text";
+  const scrollTop = $(".sheet")?.scrollTop;
+  o.innerHTML = "";
+  if (!key) { lastOverlayKey = ""; document.body.style.overflow = ""; return; }
+  document.body.style.overflow = "hidden";
+  const scrim = h("div", { class: "scrim", onclick: (e) => { if (e.target === scrim) closeOverlay(); } });
+  const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true" });
+  if (S.modal === "trip") tripForm(sheet);
+  else if (S.modal === "stop") stopForm(sheet);
+  else if (S.modal) ideaForm(sheet);
+  else if (S.open) ideaSheet(sheet);
+  else stopSheet(sheet);
+  scrim.append(sheet); o.append(scrim);
+  if (key === lastOverlayKey) {
+    if (draft != null && $("#cmt-text")) { $("#cmt-text").value = draft; if (hadFocus) $("#cmt-text").focus({ preventScroll: true }); }
+    if (scrollTop != null) sheet.scrollTop = scrollTop;
+  } else {
+    const f = sheet.querySelector("input,textarea,button.iconbtn"); f?.focus({ preventScroll: true });
+  }
+  lastOverlayKey = key;
+}
+function sheetHead(sheet, title, extra) {
+  const hd = h("div", { class: "sheet-h" }, h("h2", {}, title));
+  if (extra) hd.append(extra);
+  const x = h("button", { class: "iconbtn", type: "button", "aria-label": "Sluiten", onclick: closeOverlay }); x.innerHTML = ic("x");
+  hd.append(x); sheet.append(hd);
+}
+
+function ideaSheet(sheet) {
+  const i = S.ideas.find(x => x.id === S.open);
+  if (!i) { sheetHead(sheet, "Niet gevonden"); sheet.append(h("div", { class: "sheet-b muted" }, "Dit voorstel is verwijderd.")); return; }
+  sheetHead(sheet, i.title);
+  const b = h("div", { class: "sheet-b" });
+  const top = h("div", { class: "row" });
+  const cat = h("span", { class: "cat" }); cat.innerHTML = ic(CATS[i.category]?.icon || "dots") + esc(CATS[i.category]?.label || "Overig");
+  top.append(cat, h("span", { class: "pill " + i.status }, statusLabel(i)));
+  if (i.author === "claude") top.append(h("span", { class: "pill claude" }, "Idee van Claude"));
+  top.append(h("span", { class: "spacer" }), h("span", { class: "small muted" }, `door ${firstName(i.author)} · ${ago(i.createdAt)}`));
+  b.append(top);
+  if (i.description) b.append(h("p", { style: "margin:0;white-space:pre-wrap" }, i.description));
+
+  const kv = h("div", { class: "kv" });
+  const ist = stopOf(i);
+  kv.innerHTML = `<div><span class="label">Etappe</span><b>${ist ? `<i class="dot" style="background:${stopColor(ist.id)}"></i> ` + esc(ist.place) : "geen"}</b></div>
+    <div><span class="label">Waar</span><b>${esc(i.place || "—")}</b></div>
+    <div><span class="label">Kosten p.p.</span><b class="num">${i.cost == 0 && i.cost !== null && i.cost !== "" ? "gratis" : euro(i.cost)}</b></div>
+    <div><span class="label">Wanneer</span><b>${i.day ? esc(fmtShort(i.day)) + (i.time ? " · " + esc(i.time) : "") : "nog niet gepland"}</b></div>`;
+  if (i.status === "geboekt") kv.insertAdjacentHTML("beforeend", `<div><span class="label">Geboekt door</span><b>${esc(nameOf(i.bookedBy))}</b></div>`);
+  b.append(kv);
+
+  // vote
+  const vsec = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, i.category === "verblijf" ? "Wat vind jij ervan?" : "Doe jij mee?"), voteCtl(i), votersEl(i));
+  b.append(vsec);
+
+  // actions
+  const act = h("div", { class: "row" });
+  const days = tripDays();
+  if (days.length && i.status !== "afgevallen") {
+    const sel = h("select", { class: "sel", id: "plan-day", "aria-label": "Plan op dag" });
+    sel.append(h("option", { value: "" }, i.day ? "Uit planning halen" : "Plan in op…"));
+    days.forEach(d => { const r = rangeForDay(d); sel.append(h("option", { value: d, selected: i.day === d || null }, fmtShort(d) + (r ? " · " + r.stop.place : ""))); });
+    sel.onchange = () => patchIdea(i.id, { day: sel.value, ...(sel.value ? { stopId: rangeForDay(sel.value)?.id || i.stopId || "" } : {}), status: i.status === "geboekt" ? "geboekt" : sel.value ? "gepland" : "voorstel" }, sel.value ? `Ingepland op ${fmtShort(sel.value)}` : "Uit de planning gehaald");
+    if (i.category !== "verblijf") act.append(sel);
+  }
+  if (i.category === "verblijf" && ist && ist.stayId !== i.id && i.status !== "afgevallen") act.append(h("button", { class: "btn small primary", type: "button", onclick: () => chooseStay(ist, i) }, icEl("check"), `Kies voor ${ist.place}`));
+  if (i.status !== "geboekt" && i.status !== "afgevallen") act.append(h("button", { class: "btn small", type: "button", onclick: () => i.category === "verblijf" && ist ? chooseStay(ist, i, true) : patchIdea(i.id, { status: "geboekt", bookedBy: S.me, bookedAt: now() }, "Gemarkeerd als geboekt") }, icEl("check"), "Ik heb geboekt"));
+  if (i.status === "geboekt") act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => patchIdea(i.id, { status: i.day ? "gepland" : "voorstel", bookedBy: null }, "Boeking teruggezet") }, "Toch niet geboekt"));
+  if (i.status !== "afgevallen") act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => patchIdea(i.id, { status: "afgevallen", day: "" }, "Idee valt af") }, "Laat afvallen"));
+  else act.append(h("button", { class: "btn small", type: "button", onclick: () => patchIdea(i.id, { status: "voorstel" }, "Weer op het bord") }, "Terug op het bord"));
+  act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => openModal("edit", { id: i.id }) }, icEl("edit"), i.author && i.author !== S.me && i.author !== "claude" ? "Stel wijziging voor" : "Bewerk"));
+  b.append(act);
+
+  // links
+  const L = bookingLinks({ q: i.title, place: i.place });
+  const links = h("div", { class: "row" });
+  if (i.link) links.append(h("a", { class: "btn small primary", href: i.link, target: "_blank", rel: "noopener" }, icEl("link"), "Open link"));
+  if (i.category === "verblijf") {
+    const ir = ist ? stopRanges().find(r => r.id === ist.id) : null;
+    const BL = bookingLinks({ place: i.place || ist?.place, checkin: ir?.start, checkout: ir?.end, accType: ist?.accType });
+    links.append(h("a", { class: "btn small", href: BL.booking, target: "_blank", rel: "noopener" }, "Booking.com"), h("a", { class: "btn small", href: BL.airbnb, target: "_blank", rel: "noopener" }, "Airbnb"));
+  }
+  else if (["activiteit", "natuur", "strand"].includes(i.category)) links.append(h("a", { class: "btn small", href: L.gyg, target: "_blank", rel: "noopener" }, "GetYourGuide"));
+  if (i.category === "eten" || i.category === "avond") links.append(h("a", { class: "btn small", href: L.tripadvisor, target: "_blank", rel: "noopener" }, "Tripadvisor"));
+  links.append(h("a", { class: "btn small", href: L.maps, target: "_blank", rel: "noopener" }, icEl("map"), "Kaart"));
+  b.append(h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "Bekijken & boeken"), links));
+
+  // thread
+  const thr = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "Reacties & suggesties"));
+  const list = h("div", { class: "thread" });
+  const cs = commentsFor(i.id);
+  if (!cs.length) list.append(h("div", { class: "small muted" }, "Nog geen reacties. Twijfel je, of heb je een beter idee? Zeg het hier in plaats van in de groepsapp."));
+  cs.forEach(c => list.append(commentEl(c, i)));
+  thr.append(list);
+  const form = h("form", { class: "f", style: "margin-top:10px", onsubmit: async (e) => {
+    e.preventDefault(); const ta = $("#cmt-text"); const t = ta.value.trim(); if (!t) return;
+    const ok = await addComment(i.id, t, "reactie"); if (ok) ta.value = "";
+  } });
+  form.append(h("div", { class: "field" }, h("label", { for: "cmt-text" }, "Reageer"), h("textarea", { id: "cmt-text", rows: "2", placeholder: "Bijv. ‘Liever ’s ochtends, dan is het rustiger’" })));
+  form.append(h("div", { class: "row" }, h("button", { class: "btn primary small", type: "submit" }, "Plaats reactie"),
+    h("button", { class: "btn small", type: "button", onclick: () => openModal("edit", { id: i.id }) }, "Stel een wijziging voor"),
+    sample ? h("button", { class: "btn small ghost", type: "button", onclick: () => askAboutIdea(i) }, icEl("spark"), "Tips van Claude") : null));
+  thr.append(form);
+  b.append(thr);
+
+  // delete (author only)
+  if (i.author === S.me || (i.author === "claude" && S.canWrite)) {
+    const del = h("div", {});
+    const btn = h("button", { class: "btn small ghost", type: "button", style: "color:var(--no)", onclick: () => {
+      del.innerHTML = "";
+      del.append(h("div", { class: "confirm" }, "Voorstel en reacties verwijderen?", h("span", { class: "spacer" }),
+        h("button", { class: "btn small", type: "button", onclick: () => renderOverlay() }, "Annuleer"),
+        h("button", { class: "btn small primary", type: "button", style: "background:var(--no);border-color:var(--no)", onclick: async () => {
+          const ok = await write(async () => { for (const c of cs) await db.doc("comments/" + c.id).delete(); await db.doc("ideas/" + i.id).delete(); }, "Verwijderd");
+          if (ok) closeOverlay();
+        } }, "Verwijder")));
+    } });
+    btn.innerHTML = ic("trash") + "Verwijder voorstel";
+    del.append(btn); b.append(del);
+  }
+  sheet.append(b);
+}
+const FIELD_LABEL = { title: "titel", place: "plaats", cost: "kosten", day: "dag", time: "tijd", description: "omschrijving", category: "categorie", link: "link", stopId: "etappe", nights: "nachten", accType: "verblijf", note: "toelichting" };
+const fmtVal = (k, v) => k === "day" ? (v ? fmtShort(v) : "geen dag") : k === "cost" ? (v === "" || v == null ? "—" : euro(v)) : k === "category" ? (CATS[v]?.label || v)
+  : k === "stopId" ? (stopById(v)?.place || "geen") : k === "accType" ? (ACC[v] || v) : (v ?? "—") === "" ? "—" : String(v ?? "—");
+function commentEl(c, idea, coll = "ideas") {
+  const done = c.kind === "suggestie" && c.resolved;
+  const el = h("div", { class: "cmt" + (c.kind === "suggestie" ? " suggestion" : "") + (done ? " done" : "") });
+  const body = h("div", { class: "body" });
+  body.append(h("div", { class: "row small" }, h("b", {}, firstName(c.author).replace(/^jij$/, "Jij")),
+    c.kind === "suggestie" ? h("span", { class: "pill voorstel" }, done ? (c.resolved === "accepted" ? "Doorgevoerd" : "Afgewezen") : "Wijzigingsvoorstel") : null,
+    h("span", { class: "muted" }, ago(c.createdAt))));
+  if (c.text) body.append(h("p", {}, c.text));
+  if (c.changes) {
+    const ch = h("div", { class: "change" });
+    for (const [k, val] of Object.entries(c.changes)) {
+      const s = h("span", {}); s.append(`${FIELD_LABEL[k] || k}: `, h("del", {}, fmtVal(k, idea[k])), " → ", h("b", {}, fmtVal(k, val))); ch.append(s);
+    }
+    body.append(ch);
+  }
+  if (c.kind === "suggestie" && !c.resolved) {
+    const agree = c.agree || {};
+    const n = Object.keys(agree).filter(k => agree[k]).length;
+    const row = h("div", { class: "row", style: "margin-top:8px" });
+    row.append(h("button", { class: "btn small", type: "button", "aria-pressed": String(!!agree[S.me]), onclick: () => write(() => db.doc("comments/" + c.id).update({ agree: { [S.me]: agree[S.me] ? null : true } })) }, `Eens${n ? " · " + n : ""}`));
+    const owner = coll === "stops" ? idea.createdBy : idea.author;
+    if (owner === S.me || !owner || owner === "claude" || n >= 2) {
+      row.append(h("button", { class: "btn small primary", type: "button", onclick: async () => {
+        if (coll === "stops") {
+          if (await changeRoute({ [idea.id]: { ...(c.changes || {}) } }, "Wijziging doorgevoerd")) await write(() => db.doc("comments/" + c.id).update({ resolved: "accepted", resolvedBy: S.me }));
+          return;
+        }
+        const ch = { ...(c.changes || {}) };
+        if (ch.day) ch.stopId = rangeForDay(ch.day)?.id || ch.stopId || idea.stopId || "";
+        await write(async () => { await db.doc("ideas/" + idea.id).update({ ...ch, ...(c.changes?.day ? { status: idea.status === "geboekt" ? "geboekt" : "gepland" } : {}), updatedAt: now(), updatedBy: S.me }); await db.doc("comments/" + c.id).update({ resolved: "accepted", resolvedBy: S.me }); }, "Wijziging doorgevoerd");
+      } }, "Doorvoeren"));
+      row.append(h("button", { class: "btn small ghost", type: "button", onclick: () => write(() => db.doc("comments/" + c.id).update({ resolved: "rejected", resolvedBy: S.me }), "Suggestie afgewezen") }, "Afwijzen"));
+    } else row.append(h("span", { class: "small muted" }, "Bij 2× eens of akkoord van de indiener wordt het doorgevoerd."));
+    body.append(row);
+  }
+  el.append(avatar(c.author), body);
+  return el;
+}
+async function askAboutIdea(i) {
+  setTab("ai"); closeOverlay();
+  if (!sample || S.aiBusy) return;
+  const label = `Tips voor: ${i.title}`;
+  S.chat.push({ role: "user", content: label, label });
+  const msg = { role: "assistant", content: "", pending: true }; S.chat.push(msg); S.aiBusy = true; render();
+  aiCtl = new AbortController();
+  try {
+    await sample(`Een vriendengroep overweegt dit in Portugal: "${i.title}" (${i.category}, ${i.place || "plaats onbekend"}). ${i.description || ""}\nGroep: ${groupSize()} personen, data ${S.trip?.start || "onbekend"} t/m ${tripEnd() || "onbekend"}${S.stops.length ? `, route: ${routeText()}` : ""}.\nGeef in het Nederlands: 3 praktische tips (beste moment, reserveren, wat meenemen), een realistische prijsindicatie per persoon, en 2 alternatieven in de buurt voor wie niet mee wil. Kort en scanbaar.`,
+      { signal: aiCtl.signal, onText: ({ text }) => { msg.content = text; msg.pending = false; updateLastMsg(); } });
+  } catch (e) { msg.content = e?.text || msg.content; msg.error = aiErr(e); }
+  finally { msg.pending = false; S.aiBusy = false; render(); }
+}
+
+function ideaForm(sheet) {
+  const editing = S.modal === "edit" ? S.ideas.find(x => x.id === S.editDraft?.id) : null;
+  const asSuggestion = !!(editing && editing.author && editing.author !== S.me && editing.author !== "claude");
+  const d = editing || { category: S.editDraft?.category || "activiteit", place: S.editDraft?.place || "", stopId: S.editDraft?.stopId || (stopById(S.stopFilter) ? S.stopFilter : "") };
+  sheetHead(sheet, editing ? (asSuggestion ? "Wijziging voorstellen" : "Voorstel bewerken") : "Nieuw voorstel");
+  const b = h("div", { class: "sheet-b" });
+  if (asSuggestion) b.append(banner(`Dit is het voorstel van ${firstName(editing.author)}. Wat je aanpast wordt een suggestie die de groep kan steunen. Bij akkoord wordt het doorgevoerd.`));
+  const f = h("form", { class: "f" });
+  const seg = h("div", { class: "seg", role: "radiogroup", "aria-label": "Categorie" });
+  for (const [k, c] of Object.entries(CATS)) {
+    const id = "cat-" + k;
+    const lab = h("label", { for: id });
+    lab.append(h("input", { type: "radio", name: "category", id, value: k, checked: d.category === k || null }));
+    const sp = h("span", {}); sp.innerHTML = ic(c.icon) + esc(c.label); lab.append(sp);
+    seg.append(lab);
+  }
+  const fld = (id, label, input) => h("div", { class: "field" }, h("label", { for: id }, label), input);
+  f.append(fld("f-title", "Wat?", h("input", { id: "f-title", name: "title", required: true, maxlength: "90", value: d.title || "", placeholder: "Bijv. Boottocht naar de Benagil-grot" })));
+  f.append(h("div", { class: "field" }, h("span", { class: "small", style: "font-weight:600" }, "Soort"), seg));
+  f.append(h("div", { class: "two" },
+    fld("f-place", "Waar", h("input", { id: "f-place", name: "place", value: d.place || "", placeholder: "Lagos, Sagres, Tavira…" })),
+    fld("f-cost", "Kosten per persoon (€)", h("input", { id: "f-cost", name: "cost", type: "number", min: "0", step: "1", inputmode: "numeric", value: d.cost ?? "" }))));
+  if (S.stops.length) {
+    const stopSel = h("select", { id: "f-stop", name: "stopId" }, h("option", { value: "" }, "Nog geen etappe"));
+    const cur = editing ? stopOf(editing)?.id : d.stopId;
+    stopRanges().forEach(r => stopSel.append(h("option", { value: r.id, selected: cur === r.id || null }, `${r.idx + 1}. ${r.stop.place} (${r.nights} n)`)));
+    f.append(fld("f-stop", "Etappe", stopSel));
+  }
+  const days = tripDays();
+  const daySel = h("select", { id: "f-day", name: "day" }, h("option", { value: "" }, days.length ? "Nog niet" : "Eerst reisdata instellen"));
+  days.forEach(x => { const r = rangeForDay(x); daySel.append(h("option", { value: x, selected: d.day === x || null }, fmtShort(x) + (r ? " · " + r.stop.place : ""))); });
+  f.append(h("div", { class: "two" }, fld("f-day", "Dag", daySel), fld("f-time", "Tijd", h("input", { id: "f-time", name: "time", type: "time", value: d.time || "" }))));
+  f.append(fld("f-link", "Link (Booking.com, Airbnb, GetYourGuide…)", h("input", { id: "f-link", name: "link", type: "url", value: d.link || "", placeholder: "https://" })));
+  f.append(fld("f-desc", "Waarom is dit leuk?", h("textarea", { id: "f-desc", name: "description", rows: "3", maxlength: "800" }, d.description || "")));
+  if (asSuggestion) f.append(fld("f-why", "Toelichting voor de groep", h("input", { id: "f-why", name: "why", placeholder: "Bijv. ’s ochtends is de zee rustiger" })));
+  f.append(h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, editing ? (asSuggestion ? "Suggestie plaatsen" : "Opslaan") : "Op het bord zetten"),
+    h("button", { class: "btn ghost", type: "button", onclick: () => editing ? openIdea(editing.id) : closeOverlay() }, "Annuleer")));
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(f);
+    const vals = { title: fd.get("title").trim(), category: fd.get("category") || "overig", place: fd.get("place").trim(), cost: fd.get("cost"), day: fd.get("day"), time: fd.get("time"), link: fd.get("link").trim(), description: fd.get("description").trim() };
+    if (S.stops.length) vals.stopId = (vals.day && rangeForDay(vals.day)?.id) || fd.get("stopId") || "";
+    if (!vals.title) return;
+    if (vals.link && !/^https:\/\//i.test(vals.link)) { toast("Een link moet met https:// beginnen."); return; }
+    vals.cost = vals.cost === "" ? null : Number(vals.cost);
+    if (!editing) { if (await addIdea(vals)) closeOverlay(); return; }
+    const changes = {};
+    for (const k of Object.keys(vals)) { const a = k === "stopId" ? (stopOf(editing)?.id || "") : editing[k] ?? (k === "cost" ? null : ""); if (String(a ?? "") !== String(vals[k] ?? "")) changes[k] = vals[k]; }
+    if (!Object.keys(changes).length) { openIdea(editing.id); return; }
+    if (asSuggestion) { if (await addComment(editing.id, (fd.get("why") || "").trim(), "suggestie", changes)) openIdea(editing.id); }
+    else {
+      if (changes.day !== undefined && editing.status !== "geboekt" && editing.status !== "afgevallen") changes.status = changes.day ? "gepland" : "voorstel";
+      if (await patchIdea(editing.id, changes, "Opgeslagen")) openIdea(editing.id);
+    }
+  };
+  b.append(f); sheet.append(b);
+}
+
+function tripForm(sheet) {
+  sheetHead(sheet, "Reis instellen");
+  const t = S.trip || {};
+  const b = h("div", { class: "sheet-b" });
+  const f = h("form", { class: "f" });
+  const fld = (id, label, input, hint) => h("div", { class: "field" }, h("label", { for: id }, label), input, hint ? h("span", { class: "small muted" }, hint) : null);
+  f.append(fld("t-name", "Naam van de reis", h("input", { id: "t-name", name: "name", maxlength: "60", value: t.name || "", placeholder: "Bijv. Algarve met de jaarclub" })));
+  const hasRoute = S.stops.length > 0;
+  f.append(h("div", { class: "two" }, fld("t-start", "Heen", h("input", { id: "t-start", name: "start", type: "date", value: t.start || "", required: true })),
+    hasRoute ? h("div", { class: "field" }, h("span", { class: "small", style: "font-weight:600" }, "Terug"), h("div", { style: "padding:9px 0" }, `Volgt uit de route: ${totalNights()} nachten`))
+      : fld("t-end", "Terug", h("input", { id: "t-end", name: "end", type: "date", value: t.end || "", required: true }))));
+  const base = h("select", { id: "t-base", name: "base" });
+  ["", "Lagos", "Sagres", "Portimão", "Carvoeiro", "Albufeira", "Vilamoura", "Faro", "Olhão", "Tavira"].forEach(x => base.append(h("option", { value: x, selected: (t.base || "") === x || null }, x || "Nog niet gekozen")));
+  f.append(h("div", { class: "two" }, hasRoute ? h("div", { class: "field" }, h("span", { class: "small", style: "font-weight:600" }, "Route"), h("div", { style: "padding:9px 0" }, routeText())) : fld("t-base", "Uitvalsbasis", base, "Of plan meerdere plekken in de Route-tab."),
+    fld("t-from", "Vertrekluchthaven", h("input", { id: "t-from", name: "from", maxlength: "3", value: t.from || "AMS", style: "text-transform:uppercase" }), "IATA-code: AMS, EIN, RTM, BRU…")));
+  f.append(h("div", { class: "two" }, fld("t-trav", "Aantal personen", h("input", { id: "t-trav", name: "travelers", type: "number", min: "1", max: "30", value: t.travelers || "" })),
+    fld("t-bud", "Budget p.p. voor activiteiten (€)", h("input", { id: "t-bud", name: "budget", type: "number", min: "0", step: "10", value: t.budget || "" }))));
+  f.append(fld("t-notes", "Wensen van de groep", h("textarea", { id: "t-notes", name: "notes", rows: "3", placeholder: "Bijv. niet te vroeg op, één keer goed uit eten, iemand is vegetariër" }, t.notes || ""), "Claude houdt hier rekening mee bij voorstellen."));
+  f.append(h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, "Opslaan"), h("button", { class: "btn ghost", type: "button", onclick: closeOverlay }, "Annuleer")));
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(f);
+    const data = { name: fd.get("name").trim(), start: fd.get("start"), end: hasRoute ? addDays(fd.get("start"), totalNights()) : fd.get("end"), base: hasRoute ? (t.base || "") : fd.get("base"), from: (fd.get("from") || "AMS").trim().toUpperCase().slice(0, 3),
+      travelers: fd.get("travelers") ? Number(fd.get("travelers")) : null, budget: fd.get("budget") ? Number(fd.get("budget")) : null, notes: fd.get("notes").trim(), updatedAt: now(), updatedBy: S.me };
+    if (data.end < data.start) { toast("De terugreis ligt vóór de heenreis."); return; }
+    if ((parseDate(data.end) - parseDate(data.start)) / 86400000 > 30) { toast("Maximaal 31 dagen, anders wordt de planning onoverzichtelijk."); return; }
+    if (await write(() => db.doc("trip/main").set(data), "Reis opgeslagen")) closeOverlay();
+  };
+  b.append(f); sheet.append(b);
+}
+
+function votersEl(obj) {
+  const v = votesOf(obj);
+  const voters = h("div", { class: "voters", style: "margin-top:10px" });
+  for (const k of ["ja", "mis", "nee"]) if (v[k].length) {
+    const row = h("div", { class: "vrow" }, h("span", { class: "pill " + (k === "ja" ? "geboekt" : k === "mis" ? "voorstel" : "afgevallen"), style: "min-width:86px;justify-content:center" }, VOTE[k]));
+    v[k].forEach(id => row.append(avatar(id)));
+    row.append(h("span", { class: "small muted" }, v[k].map(firstName).join(", ")));
+    voters.append(row);
+  }
+  const notVoted = S.members.map(m => m.id).filter(id => !obj.votes?.[id]);
+  if (notVoted.length) voters.append(h("div", { class: "small muted" }, `Nog niet gestemd: ${notVoted.map(firstName).join(", ")}`));
+  return voters;
+}
+function stopSheet(sheet) {
+  const ranges = stopRanges();
+  const r = ranges.find(x => x.id === S.openStop);
+  if (!r) { sheetHead(sheet, "Niet gevonden"); sheet.append(h("div", { class: "sheet-b muted" }, "Deze etappe is van de route gehaald.")); return; }
+  const st = r.stop, f = stopFunnel(r), locked = st.status === "vast";
+  sheetHead(sheet, st.place);
+  const b = h("div", { class: "sheet-b" });
+  const top = h("div", { class: "row" }, h("i", { class: "dot", style: `background:${r.color};width:12px;height:12px` }), h("span", { class: "small" }, `Etappe ${r.idx + 1} van ${ranges.length}`));
+  const pill = h("span", { class: "pill " + (locked ? "gepland" : "voorstel") }); pill.innerHTML = (locked ? ic("lock") : "") + (locked ? "Vastgezet" : "Voorstel");
+  top.append(pill, h("span", { class: "spacer" }), h("span", { class: "small muted" }, `door ${firstName(st.createdBy)} · ${ago(st.createdAt)}`));
+  b.append(top);
+  const prev = r.idx > 0 ? ranges[r.idx - 1].stop : null;
+  const lg = prev ? legInfo(prev.place, st.place) : null;
+  const kv = h("div", { class: "kv" });
+  kv.innerHTML = `<div><span class="label">Data</span><b>${r.start ? esc(fmtShort(r.start) + " → " + fmtShort(r.end)) : "kies een startdatum"}</b></div>
+    <div><span class="label">Verblijf</span><b>${esc(ACC[st.accType] || "Nog open")}</b></div>
+    <div><span class="label">${prev ? "Vanaf " + esc(prev.place) : "Aankomst"}</span><b>${prev ? (lg ? `± ${esc(fmtHrs(lg.hrs))} · ${lg.km} km` : "reistijd onbekend") : esc("via " + AIRPORT_NAME[nearestAirport(st.place)])}</b></div>`;
+  b.append(kv);
+  if (st.note) b.append(h("p", { style: "margin:0;white-space:pre-wrap" }, st.note));
+
+  // 1 · plek & nachten
+  const s1 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "1 · Plek en nachten: akkoord?"));
+  const r1 = h("div", { class: "row" }, voteCtl(st, false, "stops"), nightsCtl(st));
+  s1.append(r1, votersEl(st));
+  const act = h("div", { class: "row", style: "margin-top:10px" });
+  if (!locked) act.append(h("button", { class: "btn small primary", type: "button", onclick: () => write(() => db.doc("stops/" + st.id).update({ status: "vast", lockedBy: S.me, lockedAt: now() }), `${st.place} staat vast`) }, icEl("lock"), "Zet vast"));
+  else act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => write(() => db.doc("stops/" + st.id).update({ status: "voorstel" }), `${st.place} staat weer open`) }, "Weer openzetten"));
+  act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => openModal("stop", { id: st.id }) }, icEl("edit"), locked ? "Stel wijziging voor" : "Bewerk etappe"));
+  s1.append(act);
+  if (locked) s1.append(h("div", { class: "small muted", style: "margin-top:6px" }, "Vastgezet: nachten en plek veranderen nu via een wijzigingsvoorstel, zodat niemand per ongeluk de planning omgooit."));
+  b.append(s1);
+
+  // 2 · verblijf
+  const BL = bookingLinks({ place: st.place, checkin: r.start, checkout: r.end, accType: st.accType });
+  const s2 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, `2 · Verblijf${r.start ? ` (${fmtShort(r.start)} → ${fmtShort(r.end)})` : ""}`));
+  const stack = h("div", { class: "stack" });
+  if (!f.stays.length) stack.append(h("div", { class: "small muted" }, `Nog geen opties. Zoek op Booking.com of Airbnb (data en groep staan al ingevuld) en plak de link als voorstel.`));
+  f.stays.forEach(i => {
+    const chosen = f.chosen?.id === i.id;
+    const row = h("div", { class: "stay-row" + (chosen ? " chosen" : "") });
+    row.append(h("div", { class: "t" }, h("button", { class: "linkish", type: "button", onclick: () => openIdea(i.id) }, i.title),
+      h("span", { class: "small muted" }, [i.cost ? euro(i.cost) + " p.p." : null, chosen ? (i.status === "geboekt" ? `geboekt door ${firstName(i.bookedBy)}` : "gekozen, nog boeken") : null].filter(Boolean).join(" · ") || "voorstel")));
+    row.append(voteCtl(i, true));
+    if (i.link) row.append(h("a", { class: "btn small ghost", href: i.link, target: "_blank", rel: "noopener" }, icEl("link")));
+    if (!chosen) row.append(h("button", { class: "btn small", type: "button", onclick: () => chooseStay(st, i) }, "Kies"));
+    else if (i.status !== "geboekt") row.append(h("button", { class: "btn small primary", type: "button", onclick: () => chooseStay(st, i, true) }, icEl("check"), "Geboekt"));
+    stack.append(row);
+  });
+  s2.append(stack, h("div", { class: "row", style: "margin-top:10px" },
+    h("button", { class: "btn small primary", type: "button", onclick: () => openModal("new", { category: "verblijf", stopId: st.id, place: st.place }) }, icEl("plus"), "Verblijf voorstellen"),
+    h("a", { class: "btn small", href: BL.booking, target: "_blank", rel: "noopener" }, "Booking.com"),
+    h("a", { class: "btn small", href: BL.airbnb, target: "_blank", rel: "noopener" }, "Airbnb")));
+  b.append(s2);
+
+  // 3 · activiteiten
+  const s3 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, `3 · Activiteiten (${f.acts.length})`));
+  const al = h("div", { class: "stack" });
+  if (!f.acts.length) al.append(h("div", { class: "small muted" }, `Nog niets voor ${st.place}. Voeg een idee toe of kijk bij Inspiratie.`));
+  f.acts.slice(0, 6).forEach(i => {
+    const m = h("button", { class: "mini", type: "button", onclick: () => openIdea(i.id) }, icEl(CATS[i.category]?.icon || "dots"), h("b", {}, i.title), tally(i));
+    al.append(m);
+  });
+  s3.append(al, h("div", { class: "row", style: "margin-top:10px" },
+    h("button", { class: "btn small primary", type: "button", onclick: () => openModal("new", { stopId: st.id, place: st.place }) }, icEl("plus"), "Idee toevoegen"),
+    h("button", { class: "btn small", type: "button", onclick: () => { S.stopFilter = st.id; closeOverlay(); setTab("ideas"); } }, `Alle ideeën voor ${st.place}`),
+    h("a", { class: "btn small ghost", href: bookingLinks({ q: st.place, place: st.place }).gyg, target: "_blank", rel: "noopener" }, "GetYourGuide")));
+  b.append(s3);
+
+  // 4 · dagen
+  if (r.start) {
+    const s4 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, `4 · Dagplanning (${f.plannedDays} / ${r.nights})`));
+    const dl = h("div", {});
+    for (let k = 0; k < r.nights; k++) {
+      const d = addDays(r.start, k);
+      const items = S.ideas.filter(i => i.day === d && i.status !== "afgevallen" && i.category !== "verblijf").sort((a, c) => (a.time || "99").localeCompare(c.time || "99"));
+      dl.append(h("div", { class: "dayline" }, h("span", { class: "d" }, fmtShort(d)), h("span", { class: items.length ? "" : "muted" }, items.length ? items.map(i => (i.time ? i.time + " " : "") + i.title).join(" · ") : (k === 0 && r.idx > 0 ? "reisdag, nog vrij" : "nog vrij"))));
+    }
+    s4.append(dl, h("div", { class: "row", style: "margin-top:10px" }, h("button", { class: "btn small", type: "button", onclick: () => { S.planFocus = st.id; closeOverlay(); setTab("plan"); } }, icEl("cal"), "Naar de planning")));
+    b.append(s4);
+  }
+
+  // reacties
+  const thr = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "Reacties & suggesties"));
+  const list = h("div", { class: "thread" });
+  const cs = commentsFor(st.id);
+  if (!cs.length) list.append(h("div", { class: "small muted" }, "Liever 2 nachten? Of toch Lagos in plaats van Albufeira? Zeg het hier."));
+  cs.forEach(c => list.append(commentEl(c, st, "stops")));
+  thr.append(list);
+  const form = h("form", { class: "f", style: "margin-top:10px", onsubmit: async (e) => {
+    e.preventDefault(); const ta = $("#cmt-text"); const t = ta.value.trim(); if (!t) return;
+    if (await addComment(st.id, t, "reactie", null, "stops")) ta.value = "";
+  } });
+  form.append(h("div", { class: "field" }, h("label", { for: "cmt-text" }, "Reageer"), h("textarea", { id: "cmt-text", rows: "2", placeholder: "Bijv. ‘Na 2 nachten Lissabon heb ik het wel gezien’" })));
+  form.append(h("div", { class: "row" }, h("button", { class: "btn primary small", type: "submit" }, "Plaats reactie"),
+    h("button", { class: "btn small", type: "button", onclick: () => openModal("stop", { id: st.id, suggest: true }) }, "Stel een wijziging voor")));
+  thr.append(form);
+  b.append(thr);
+
+  if (!locked) {
+    const del = h("div", {});
+    const btn = h("button", { class: "btn small ghost", type: "button", style: "color:var(--no)", onclick: () => {
+      del.innerHTML = "";
+      del.append(h("div", { class: "confirm" }, `${st.place} van de route halen? Ingeplande ideeën gaan terug naar het bord.`, h("span", { class: "spacer" }),
+        h("button", { class: "btn small", type: "button", onclick: () => renderOverlay() }, "Annuleer"),
+        h("button", { class: "btn small primary", type: "button", style: "background:var(--no);border-color:var(--no)", onclick: async () => {
+          if (await changeRoute({ [st.id]: { __delete: true } }, `${st.place} van de route gehaald`)) closeOverlay();
+        } }, "Haal weg")));
+    } });
+    btn.innerHTML = ic("trash") + "Etappe verwijderen";
+    del.append(btn); b.append(del);
+  }
+  sheet.append(b);
+}
+function stopForm(sheet) {
+  const editing = stopById(S.editDraft?.id);
+  const asSuggestion = !!(editing && (editing.status === "vast" || S.editDraft?.suggest));
+  sheetHead(sheet, editing ? (asSuggestion ? "Wijziging voorstellen" : "Etappe bewerken") : "Etappe toevoegen");
+  const b = h("div", { class: "sheet-b" });
+  if (asSuggestion) b.append(banner(editing.status === "vast" ? "Deze etappe staat vast. Je wijziging wordt een suggestie. Met akkoord van de indiener of 2 anderen wordt hij doorgevoerd, en ingeplande ideeën schuiven mee." : "Je wijziging wordt een suggestie waar de groep op kan reageren."));
+  else if (!editing) b.append(h("p", { class: "muted", style: "margin:0" }, "Begin grof: de plek waar jullie slapen en hoeveel nachten. Het verblijf zelf zoeken jullie daarna samen uit."));
+  const d = editing || { nights: 3, accType: "open" };
+  const f = h("form", { class: "f" });
+  const fld = (id, label, input, hint) => h("div", { class: "field" }, h("label", { for: id }, label), input, hint ? h("span", { class: "small muted" }, hint) : null);
+  const dl = h("datalist", { id: "places-dl" }); Object.keys(PLACES).forEach(k => dl.append(h("option", { value: k })));
+  f.append(fld("s-place", "Plek (uitvalsbasis)", h("input", { id: "s-place", name: "place", required: true, maxlength: "60", list: "places-dl", value: d.place || "", placeholder: "Lissabon, Albufeira, Lagos…" }), "Bekende plaatsen krijgen automatisch reistijden en vliegveld."), dl);
+  f.append(h("div", { class: "two" },
+    fld("s-nights", "Nachten", h("input", { id: "s-nights", name: "nights", type: "number", min: "1", max: "30", required: true, inputmode: "numeric", value: d.nights || 3 })),
+    (() => { const sel = h("select", { id: "s-acc", name: "accType" }); Object.entries(ACC).forEach(([k, l]) => sel.append(h("option", { value: k, selected: (d.accType || "open") === k || null }, l))); return fld("s-acc", "Soort verblijf", sel); })()));
+  if (!editing && S.stops.length) {
+    const pos = h("select", { id: "s-pos", name: "pos" });
+    const rs = stopRanges();
+    pos.append(h("option", { value: "end" }, "Aan het eind"));
+    pos.append(h("option", { value: "start" }, `Als eerste (vóór ${rs[0].stop.place})`));
+    rs.slice(0, -1).forEach((r, k) => pos.append(h("option", { value: "after:" + k }, `Na ${r.stop.place}`)));
+    f.append(fld("s-pos", "Waar in de route?", pos));
+  }
+  f.append(fld("s-note", "Waarom hier?", h("textarea", { id: "s-note", name: "note", rows: "2", maxlength: "400", placeholder: "Bijv. stad, cultuur en uitgaan voordat we gaan stranden" }, d.note || "")));
+  if (asSuggestion) f.append(fld("s-why", "Toelichting voor de groep", h("input", { id: "s-why", name: "why", placeholder: "Bijv. 2 nachten is genoeg, dan hebben we meer strand" })));
+  f.append(h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, editing ? (asSuggestion ? "Suggestie plaatsen" : "Opslaan") : "Op de route zetten"),
+    h("button", { class: "btn ghost", type: "button", onclick: () => editing ? openStop(editing.id) : closeOverlay() }, "Annuleer")));
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(f);
+    const typed = fd.get("place").trim();
+    const vals = { place: placeInfo(typed)?.key && norm(placeInfo(typed).key) === norm(typed) ? placeInfo(typed).key : typed, nights: Math.max(1, Math.min(30, Number(fd.get("nights")) || 1)), accType: fd.get("accType") || "open", note: fd.get("note").trim() };
+    if (!vals.place) return;
+    if (!editing) {
+      const rs = stopRanges(); const pos = fd.get("pos") || "end";
+      let order;
+      if (!rs.length || pos === "end") order = maxOrder() + 1;
+      else if (pos === "start") order = (rs[0].stop.order ?? 0) - 1;
+      else { const k = Number(pos.split(":")[1]); order = ((rs[k].stop.order ?? 0) + (rs[k + 1].stop.order ?? 0)) / 2; }
+      if (await changeRoute({}, `${vals.place} staat op de route`, [newStop(vals, order)])) closeOverlay();
+      return;
+    }
+    const changes = {};
+    for (const k of Object.keys(vals)) if (String(editing[k] ?? "") !== String(vals[k] ?? "")) changes[k] = vals[k];
+    if (!Object.keys(changes).length) { openStop(editing.id); return; }
+    if (asSuggestion) { if (await addComment(editing.id, (fd.get("why") || "").trim(), "suggestie", changes, "stops")) openStop(editing.id); }
+    else if (await changeRoute({ [editing.id]: changes }, "Etappe bijgewerkt")) openStop(editing.id);
+  };
+  b.append(f); sheet.append(b);
+}
+
+/* ---------- profiles ---------- */
+let profT;
+function refreshProfiles() {
+  if (!user) return;
+  clearTimeout(profT);
+  profT = setTimeout(async () => {
+    const ids = new Set([...S.members.map(m => m.id), ...S.peers]);
+    S.ideas.forEach(i => { if (i.author && i.author !== "claude") ids.add(i.author); if (i.bookedBy) ids.add(i.bookedBy); Object.keys(i.votes || {}).forEach(k => ids.add(k)); });
+    S.comments.forEach(c => c.author && ids.add(c.author));
+    S.stops.forEach(st => { if (st.createdBy && st.createdBy !== "claude") ids.add(st.createdBy); if (st.lockedBy) ids.add(st.lockedBy); Object.keys(st.votes || {}).forEach(k => ids.add(k)); });
+    if (S.me) ids.add(S.me);
+    const list = [...ids].filter(Boolean);
+    if (!list.length) return;
+    try { S.profiles = { ...S.profiles, ...(await user.profiles(list)) }; } catch (e) {}
+    render();
+  }, 60);
+}
+
+/* ---------- boot ---------- */
+let rT;
+function scheduleRender() { cancelAnimationFrame(rT); rT = requestAnimationFrame(() => { render(); refreshProfiles(); }); }
+
+render();
+
+(async function boot() {
+  if (!window.claude?.use) { S.ready.db = true; S.ready.sample = true; render(); return; }
+  claude.use("sample").then(s => { sample = s; S.ready.sample = true; if (S.tab === "ai") render(); });
+  user = await claude.use("user");
+  if (user) {
+    S.me = await user.id();
+    const cw = await user.can("data.write");
+    if (cw === false) S.canWrite = false;
+  }
+  db = await claude.use("db");
+  S.ready.db = !db;
+  if (!db) { render(); return; }
+  const onErr = () => {};
+  db.doc("trip/main").onSnapshot(snap => { S.trip = snap.exists ? snap.data() : null; S.tripLoaded = true; scheduleRender(); }, onErr);
+  db.collection("ideas").onSnapshot(snap => {
+    S.ideas = snap.docs.map(d => ({ id: d.id, ...d.data() })); S.ready.db = true; scheduleRender();
+  }, onErr);
+  db.collection("stops").onSnapshot(snap => { S.stops = snap.docs.map(d => ({ id: d.id, ...d.data() })); scheduleRender(); }, onErr);
+  db.collection("comments").onSnapshot(snap => { S.comments = snap.docs.map(d => ({ id: d.id, ...d.data() })); scheduleRender(); }, onErr);
+  db.collection("members").onSnapshot(snap => { S.members = snap.docs.map(d => ({ id: d.id, ...d.data() })); scheduleRender(); ensureMember(); }, onErr);
+
+  room = await claude.use("room");
+  if (room) {
+    room.presence({ tab: S.tab }).catch(() => {});
+    room.onPeers(({ peers }) => {
+      S.peers = [...new Set(peers.filter(p => p.kind === "viewer" && p.by).map(p => p.by))];
+      scheduleRender();
+    }, () => {});
+  }
+})();
+</script>
+
+</body>
+</html>

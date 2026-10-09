@@ -1,0 +1,13 @@
+{
+  "name": "rota",
+  "private": true,
+  "type": "module",
+  "description": "Rota: samen een reis plannen. Cloudflare Pages + D1 + Claude.",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx wrangler@4.139.0 pages dev public --d1 DB=rota-db --compatibility-date=2026-09-01"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.128.0"
+  }
+}

@@ -551,6 +551,7 @@ const S = {
 };
 let db = null, user = null, sample = null, room = null;
 let aiCtl = null;
+const STANDALONE = !!window.ROTA_STANDALONE;   // true on the Cloudflare site, false on claude.ai
 
 try { const t = localStorage.getItem("rota-tab"); if (t) S.tab = t; } catch (e) {}
 
@@ -873,6 +874,19 @@ function renderHeader() {
   });
   if (ids.length > 6) crew.append(h("span", { class: "more" }, `+${ids.length - 6}`));
   if (S.peers.length > 1) crew.append(h("span", { class: "more" }, `${S.peers.length} online`));
+  if (STANDALONE && db) {
+    crew.title = "Ben jij iemand anders? Klik om van persoon te wisselen.";
+    crew.style.cursor = "pointer";
+    crew.onclick = () => window.rotaSwitchPerson?.();
+    if (!$("#sharebtn")) {
+      const sb = h("button", { class: "btn small primary", id: "sharebtn", type: "button", onclick: async () => {
+        const r = await window.rotaShare?.();
+        if (r === "copied") toast("Link gekopieerd. Plak hem in de groepsapp.");
+        else if (r && r !== "shared" && r !== "cancelled") toast("Deel deze link: " + r);
+      } }, icEl("users"), "Nodig uit");
+      crew.after(sb);
+    }
+  }
   const fab = $("#fab");
   const onRoute = S.tab === "route";
   fab.innerHTML = ic("plus") + `<span>${onRoute ? "Etappe toevoegen" : "Nieuw voorstel"}</span>`;
@@ -887,7 +901,7 @@ function render() {
   const kept = {}; main.querySelectorAll("input[id],textarea[id]").forEach(el => kept[el.id] = [el.value, el.selectionStart, el.selectionEnd]);
   main.innerHTML = "";
   const v = h("div", { class: "view" });
-  if (!db && S.ready.db) v.append(banner("Deze pagina werkt samen met je reisgenoten via claude.ai. Hier zie je hem zonder opslag: je kunt rondkijken maar niets bewaren."));
+  if (!db && S.ready.db) v.append(banner(STANDALONE ? "Geen verbinding met de server. Je kunt rondkijken, maar wijzigingen worden niet bewaard." : "Deze pagina werkt samen met je reisgenoten via claude.ai. Hier zie je hem zonder opslag: je kunt rondkijken maar niets bewaren."));
   else if (db && !S.canWrite) v.append(banner("Je kijkt mee. Om te stemmen en voorstellen te doen moet de organisator je uitnodigen als bewerker (Delen → uitnodigen per e-mail)."));
   ({ home: viewHome, route: viewRoute, ideas: viewIdeas, plan: viewPlan, book: viewBook, ai: viewAI }[S.tab] || viewHome)(v);
   main.append(v);
@@ -1007,7 +1021,8 @@ function viewHome(v) {
   // activity feed
   const right = h("section", {});
   right.append(h("div", { class: "section-h", style: "margin-bottom:10px" }, h("h2", {}, "Laatste nieuws"), h("span", { class: "spacer" }),
-    h("button", { class: "btn small", type: "button", onclick: nudge }, icEl("copy"), "Porretje voor de groep")));
+    h("button", { class: "btn small", type: "button", onclick: () => nudge() }, icEl("copy"), "Porretje voor de groep"),
+    STANDALONE ? h("a", { class: "btn small", href: nudge(true), target: "_blank", rel: "noopener" }, "Via WhatsApp") : null));
   const ev = [];
   const asIdea = (i) => ({ title: i.title, open: () => openIdea(i.id) });
   const asStop = (st) => ({ title: `etappe ${st.place}`, open: () => openStop(st.id) });
@@ -1034,7 +1049,7 @@ function viewHome(v) {
   grid.append(right);
   v.append(grid);
 }
-function nudge() {
+function nudge(viaWhatsApp = false) {
   const todo = S.ideas.filter(i => i.status === "voorstel");
   const top = [...todo].sort((a, b) => score(b) - score(a)).slice(0, 3);
   const lines = [`Algarve-update${S.trip?.start ? ` (${fmtShort(S.trip.start)} – ${fmtShort(tripEnd())})` : ""}:`];
@@ -1042,6 +1057,8 @@ function nudge() {
   lines.push(`${todo.length} voorstellen wachten op stemmen in Rota Algarve.`);
   if (top.length) lines.push("Favorieten tot nu toe:", ...top.map(i => `• ${i.title} (${votesOf(i).ja.length}x ja)`));
   lines.push("Stem even mee in de app, dan hoeft het niet hier in de groep 🙂");
+  if (STANDALONE && window.rotaTripUrl) lines.push(window.rotaTripUrl());
+  if (viaWhatsApp) return "https://wa.me/?text=" + encodeURIComponent(lines.join("\n"));
   copyText(lines.join("\n"));
 }
 
@@ -1485,7 +1502,7 @@ function viewAI(v) {
   const chat = h("section", { class: "card chat" });
   const msgs = h("div", { class: "msgs", id: "msgs", "aria-live": "polite" });
   if (!S.chat.length) msgs.append(h("div", { class: "muted", style: "margin:auto;text-align:center;max-width:36ch" },
-    sample === null && S.ready.sample ? "Claude is in deze weergave niet beschikbaar. Open de reis op claude.ai om Claude te gebruiken." : "Kies links een vraag, of typ zelf iets. Bijvoorbeeld: welk strand is het mooist voor een groep van 8 met kinderen?"));
+    sample === null && S.ready.sample ? (STANDALONE ? "Claude is hier niet beschikbaar. Controleer je verbinding." : "Claude is in deze weergave niet beschikbaar. Open de reis op claude.ai om Claude te gebruiken.") : "Kies links een vraag, of typ zelf iets. Bijvoorbeeld: welk strand is het mooist voor een groep van 8 met kinderen?"));
   S.chat.forEach((m, idx) => msgs.append(renderMsg(m, idx)));
   chat.append(msgs);
   const comp = h("form", { class: "composer", onsubmit: (e) => { e.preventDefault(); const ta = $("#ask"); const q = ta.value.trim(); if (!q) return; ta.value = ""; askFree(q); } });
@@ -1565,8 +1582,8 @@ function routeSuggestion(m) {
 function aiErr(e) {
   switch (e?.code) {
     case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
-      return "Claude is niet toegestaan voor deze pagina. Je kunt dit wijzigen via het menu Machtigingen van de artifact.";
-    case "rate_limited": return "Even te veel vragen achter elkaar. Probeer het over een minuut opnieuw.";
+      return STANDALONE ? "Claude is op deze site nog niet ingesteld. De organisator moet een Anthropic API-sleutel toevoegen in Cloudflare." : "Claude is niet toegestaan voor deze pagina. Je kunt dit wijzigen via het menu Machtigingen van de artifact.";
+    case "rate_limited": return STANDALONE ? "Het daglimiet voor Claude-vragen is bereikt, of het is even te druk. Probeer het later opnieuw." : "Even te veel vragen achter elkaar. Probeer het over een minuut opnieuw.";
     case "session_expired": return "Je sessie is verlopen. Log opnieuw in op claude.ai.";
     case "refused": return "Claude wilde hier niet op antwoorden. Formuleer de vraag anders.";
     case "invalid_json": return "Het antwoord kwam niet in het goede formaat terug. Probeer het nog een keer.";
