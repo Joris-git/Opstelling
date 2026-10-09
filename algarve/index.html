@@ -203,6 +203,7 @@ select.sel{border:1px solid var(--line);background:var(--surface);border-radius:
 .slot .what b{display:block;font-weight:600}
 .day .none{padding:14px;color:var(--muted);font-size:14px}
 .mini{display:flex;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;font-size:14px}
+.mini{text-align:left;color:var(--ink)}
 .mini:hover{border-color:var(--muted)}
 .mini svg{width:16px;height:16px;flex:none;color:var(--muted)}
 .mini:disabled{opacity:.6;cursor:default}
@@ -253,6 +254,72 @@ select.sel{border:1px solid var(--line);background:var(--surface);border-radius:
 .sugg{padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
 .sugg b{font-weight:700}
 .sugg p{margin:0;font-size:13.5px;color:var(--muted)}
+
+/* ---------- route ---------- */
+.route-sum{padding:16px;display:flex;flex-direction:column;gap:14px}
+.facts4{display:flex;gap:22px;flex-wrap:wrap}
+.facts4 b{display:block;font-size:17px;font-weight:600}
+.strip{display:flex;gap:3px;min-height:44px}
+.strip .rseg{border:0;border-radius:8px;min-width:0;padding:6px 9px;color:var(--bg);text-align:left;display:flex;flex-direction:column;justify-content:center;overflow:hidden;font:inherit}
+.strip .rseg b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .rseg span{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .rseg.voorstel{background-image:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.2) 6px 12px)}
+.countdown .strip{margin-top:14px;position:relative;z-index:1}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:18px;height:10px;border-radius:3px;background:var(--muted);margin-right:5px;vertical-align:-1px}
+.legend i.striped{background-image:repeating-linear-gradient(135deg,transparent 0 3px,var(--bg) 3px 6px)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.stops{display:flex;flex-direction:column}
+.stop{padding:16px;display:flex;flex-direction:column;gap:14px}
+.stop.vast{border-color:var(--sea)}
+.stop-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.stop-h .idx{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;color:var(--bg);flex:none}
+.stop-t{min-width:0;flex:1 1 160px}
+.stop-t .linkish{font-family:var(--f-display);font-weight:400;font-size:24px;text-decoration:none;line-height:1.15}
+.nights{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.nights button{border:0;background:none;width:34px;height:34px;font-size:18px;font-weight:600;color:var(--ink);border-radius:50%}
+.nights button:disabled{opacity:.35;cursor:not-allowed}
+.nights b{min-width:84px;text-align:center;font-size:14px;font-weight:700}
+.ord{display:flex;gap:4px}
+.ord .iconbtn{width:32px;height:32px}
+.ord .iconbtn:disabled{opacity:.35;cursor:not-allowed}
+.leg{display:flex;align-items:center;gap:8px;padding:10px 0 10px 16px;margin-left:16px;border-left:2px dashed var(--line);color:var(--muted);font-size:13px}
+.leg svg{width:16px;height:16px;flex:none}
+.leg.long{color:var(--ochre)}
+.funnel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.funnel{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.step{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left;font:inherit;color:var(--ink)}
+.step:hover{border-color:var(--muted)}
+.step .st{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.step .st i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center}
+.step.half .st i{border-color:var(--ochre);background:linear-gradient(90deg,var(--ochre) 50%,transparent 50%)}
+.step.done .st i{border-color:var(--ok);background:var(--ok)}
+.step.done .st i::after{content:"";width:5px;height:3px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.step b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step span{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.next{padding:14px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-color:var(--ochre)}
+.next .t{flex:1 1 220px;min-width:0}
+.next .t b{display:block;font-size:16px;font-weight:600}
+.lvl{display:flex;gap:4px}
+.lvl i{width:22px;height:6px;border-radius:9px;background:var(--line)}
+.lvl i.on{background:var(--ochre)}
+.stop-band{display:flex;align-items:center;gap:10px;padding:4px 2px;margin-top:8px;flex-wrap:wrap;scroll-margin-top:140px}
+.stop-band h3{font-size:21px}
+.stop-band .dot{width:12px;height:12px}
+.mini .dot{margin-left:auto}
+.stay-row{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);flex-wrap:wrap}
+.stay-row .t{flex:1 1 150px;min-width:0}
+.stay-row .t .linkish{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.stay-row.chosen{border-color:var(--sea);background:var(--sea-soft)}
+.dayline{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.dayline:first-child{border-top:0}
+.dayline .d{width:96px;flex:none;color:var(--muted);font-weight:600}
+.stack{display:flex;flex-direction:column;gap:8px}
+.etappes{display:flex;flex-direction:column;gap:10px}
+.etappe-row{padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.etappe-row .t{flex:1 1 200px;min-width:0}
+.etappe-row .t b{font-size:16px}
+.route-cards{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 
 /* ---------- sheet / modal ---------- */
 .scrim{position:fixed;inset:0;background:rgba(10,20,26,.45);z-index:50;display:flex;justify-content:flex-end}
@@ -375,6 +442,10 @@ const P = {
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   rain:'<path d="M7 15a4 4 0 0 1 .5-8A5 5 0 0 1 17 8a3.5 3.5 0 0 1 0 7z"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>',
   users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/>',
+  route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/>',
+  up:'<path d="M6 15l6-6 6 6"/>',
+  down:'<path d="M6 9l6 6 6-6"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'
 };
 const ic = (n, cls = "") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ""}</svg>`;
@@ -410,6 +481,16 @@ const DOWL = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zat
 
 /* Built-in inspiration: real places, one tap to put on the board */
 const REGIONS = [
+  { name: "Lissabon", tag: "Hoofdstad", text: "Heuvels, trams en pastéis de nata. Fijn voor 2 à 3 nachten aan het begin van de reis.",
+    ideas: [
+      { title: "Tram 28 en verdwalen in Alfama", category: "activiteit", place: "Lissabon", cost: 3, description: "Historische tram door de oude wijken. Stap uit bij Miradouro de Santa Luzia voor het uitzicht." },
+      { title: "Pastéis de Belém halen", category: "eten", place: "Lissabon", cost: 5, description: "De originele pastel de nata sinds 1837, naast het Jerónimos-klooster. De rij gaat snel." },
+      { title: "Avond in Bairro Alto", category: "avond", place: "Lissabon", cost: 30, description: "Smalle straatjes vol kleine bars waar iedereen buiten staat. Begin met fado in Alfama." }
+    ] },
+  { name: "Sintra", tag: "Dagtrip vanuit Lissabon", text: "Sprookjespaleizen in de heuvels, ongeveer 40 minuten met de trein vanaf Rossio.",
+    ideas: [
+      { title: "Pena-paleis in Sintra", category: "activiteit", place: "Sintra", cost: 20, description: "Kleurrijk paleis op een heuveltop. Koop tickets met tijdslot vooraf en ga vroeg." }
+    ] },
   { name: "Lagos", tag: "Westkust", text: "Gezellige oude stad, Ponta da Piedade-kliffen en Praia do Camilo. Goede uitvalsbasis voor een groep.",
     ideas: [
       { title: "Kajakken langs Ponta da Piedade", category: "activiteit", place: "Lagos", cost: 35, description: "Peddelen door grotten en bogen in de goudkleurige kliffen. Ochtend is het rustigst op het water." },
@@ -449,6 +530,11 @@ const S = {
   trip: null,             // trip/main body
   tripLoaded: false,
   ideas: [],              // [{id, ...data}]
+  stops: [],              // route-etappes
+  stopFilter: "alle",
+  openStop: null,         // stop id in sheet
+  planFocus: null,
+  routeBusy: false,
   comments: [],
   members: [],
   peers: [],              // live online ids
@@ -485,7 +571,7 @@ const ago = (t) => {
 };
 const euro = (n) => n == null || n === "" || isNaN(n) ? "—" : `€ ${Math.round(Number(n)).toLocaleString("nl-NL")}`;
 const tripDays = () => {
-  const a = parseDate(S.trip?.start), b = parseDate(S.trip?.end);
+  const a = parseDate(S.trip?.start), b = parseDate(tripEnd());
   if (!a || !b || b < a) return [];
   const out = []; for (let d = new Date(a); d <= b && out.length < 31; d.setDate(d.getDate() + 1)) out.push(iso(d));
   return out;
@@ -512,8 +598,111 @@ const votesOf = (idea) => {
   return r;
 };
 const score = (idea) => { const v = votesOf(idea); return v.ja.length * 2 + v.mis.length - v.nee.length * 2; };
-const commentsFor = (id) => S.comments.filter(c => c.ideaId === id).sort((a, b) => a.createdAt - b.createdAt);
+const commentsFor = (id) => S.comments.filter(c => c.ideaId === id || c.stopId === id).sort((a, b) => a.createdAt - b.createdAt);
 const openSuggestions = (id) => commentsFor(id).filter(c => c.kind === "suggestie" && !c.resolved);
+const statusLabel = (i) => i.category === "verblijf" && i.status === "gepland" ? "Gekozen" : STATUS[i.status] || "Voorstel";
+
+/* ---------- route: etappes (groot) → verblijf → activiteiten → dagen (klein) ---------- */
+const PLACES = {
+  "Lissabon": [38.722, -9.139, "Lisbon, Portugal"], "Sintra": [38.800, -9.381, "Sintra, Portugal"], "Cascais": [38.697, -9.421, "Cascais, Portugal"],
+  "Porto": [41.149, -8.611, "Porto, Portugal"], "Évora": [38.571, -7.909, "Évora, Portugal"], "Comporta": [38.381, -8.784, "Comporta, Portugal"],
+  "Vila Nova de Milfontes": [37.725, -8.783, "Vila Nova de Milfontes, Portugal"], "Aljezur": [37.318, -8.803, "Aljezur, Portugal"],
+  "Sagres": [37.009, -8.940, "Sagres, Portugal"], "Lagos": [37.102, -8.674, "Lagos, Portugal"], "Luz": [37.087, -8.727, "Luz, Portugal"],
+  "Portimão": [37.139, -8.537, "Portimão, Portugal"], "Monchique": [37.318, -8.556, "Monchique, Portugal"], "Carvoeiro": [37.097, -8.472, "Carvoeiro, Portugal"],
+  "Albufeira": [37.089, -8.250, "Albufeira, Portugal"], "Vilamoura": [37.077, -8.117, "Vilamoura, Portugal"], "Faro": [37.019, -7.930, "Faro, Portugal"],
+  "Olhão": [37.026, -7.841, "Olhão, Portugal"], "Tavira": [37.127, -7.649, "Tavira, Portugal"], "Benagil": [37.087, -8.426, "Benagil, Portugal"],
+  "Guia": [37.126, -8.300, "Guia, Portugal"], "Sevilla": [37.389, -5.984, "Seville, Spain"]
+};
+const ALIAS = { lisboa: "Lissabon", lisbon: "Lissabon", seville: "Sevilla", "praia da luz": "Luz" };
+const AIRPORTS = { LIS: [38.774, -9.134], FAO: [37.017, -7.966], OPO: [41.248, -8.681], SVQ: [37.418, -5.893] };
+const AIRPORT_NAME = { LIS: "Lissabon", FAO: "Faro", OPO: "Porto", SVQ: "Sevilla" };
+const STOPCOL = ["var(--azulejo)", "var(--sea)", "var(--ochre)", "var(--ok)", "var(--no)"];
+const ACC = { open: "Nog open", hotel: "Hotel", villa: "Villa", appartement: "Appartement", bnb: "B&B / guesthouse", hostel: "Hostel", camping: "Camping" };
+const TEMPLATES = [
+  { label: "3n Lissabon → 5n Albufeira", stops: [["Lissabon", 3, "hotel"], ["Albufeira", 5, "villa"]] },
+  { label: "7n Lagos", stops: [["Lagos", 7, "villa"]] },
+  { label: "2n Lissabon → 2n Comporta → 4n Tavira", stops: [["Lissabon", 2, "hotel"], ["Comporta", 2, "bnb"], ["Tavira", 4, "appartement"]] },
+  { label: "4n Lagos → 4n Tavira", stops: [["Lagos", 4, "villa"], ["Tavira", 4, "appartement"]] }
+];
+const norm = (x) => String(x || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+function placeInfo(name) {
+  const n = norm(name); if (!n) return null;
+  const key = ALIAS[n] || Object.keys(PLACES).find(k => norm(k) === n) || Object.keys(PLACES).find(k => n.includes(norm(k)));
+  return key ? { key, lat: PLACES[key][0], lon: PLACES[key][1], q: PLACES[key][2] } : null;
+}
+const samePlace = (a, b) => { if (norm(a) === norm(b)) return true; const pa = placeInfo(a), pb = placeInfo(b); return !!(pa && pb && pa.key === pb.key); };
+function kmBetween(a, b) {
+  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(x));
+}
+/* rough road estimate: straight line × 1,25, average 85 km/h */
+function legInfo(aName, bName) {
+  const a = placeInfo(aName), b = placeInfo(bName);
+  if (!a || !b) return null;
+  const km = Math.round(kmBetween(a, b) * 1.25 / 5) * 5;
+  return { km, hrs: km / 85 };
+}
+const fmtHrs = (x) => x < 0.75 ? `${Math.max(10, Math.round(x * 12) * 5)} min` : `${(Math.round(x * 2) / 2).toLocaleString("nl-NL")} uur`;
+function nearestAirport(name) {
+  const p = placeInfo(name); if (!p) return "FAO";
+  let best = "FAO", d = Infinity;
+  for (const [code, [lat, lon]] of Object.entries(AIRPORTS)) { const k = kmBetween(p, { lat, lon }); if (k < d) { d = k; best = code; } }
+  return best;
+}
+const addDays = (x, n) => { const d = parseDate(x); d.setDate(d.getDate() + n); return iso(d); };
+const daysBetween = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 86400000);
+const nightsOf = (st) => Math.max(1, Math.min(30, Number(st.nights) || 1));
+const sortedStops = (list = S.stops) => [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || (a.createdAt || 0) - (b.createdAt || 0));
+function stopRanges(list = sortedStops(), start = S.trip?.start) {
+  let off = 0;
+  return list.map((st, idx) => {
+    const nights = nightsOf(st);
+    const r = { stop: st, id: st.id, idx, nights, from: off, start: start ? addDays(start, off) : null, end: start ? addDays(start, off + nights) : null, color: STOPCOL[idx % STOPCOL.length] };
+    off += nights; return r;
+  });
+}
+const totalNights = () => S.stops.reduce((a, st) => a + nightsOf(st), 0);
+const tripEnd = () => S.stops.length && S.trip?.start ? addDays(S.trip.start, totalNights()) : S.trip?.end;
+function rangeForDay(day, ranges = stopRanges(), start = S.trip?.start) {
+  if (!day || !start || !ranges.length) return null;
+  const off = daysBetween(start, day);
+  const last = ranges[ranges.length - 1];
+  if (off === last.from + last.nights) return last;  // vertrekdag hoort bij de laatste etappe
+  return ranges.find(r => off >= r.from && off < r.from + r.nights) || null;
+}
+const stopById = (id) => id ? S.stops.find(st => st.id === id) : null;
+function stopOf(idea) {
+  if (idea.day) { const r = rangeForDay(idea.day); if (r) return r.stop; }
+  return stopById(idea.stopId) || null;
+}
+const stopColor = (id) => stopRanges().find(r => r.id === id)?.color || "var(--muted)";
+function autoStopId(place) {
+  if (!S.stops.length || !place) return "";
+  const exact = S.stops.find(st => samePlace(st.place, place));
+  if (exact) return exact.id;
+  const p = placeInfo(place); if (!p) return "";
+  let best = "", d = 45;
+  for (const st of S.stops) { const q = placeInfo(st.place); if (q) { const k = kmBetween(p, q); if (k < d) { d = k; best = st.id; } } }
+  return best;
+}
+function stopFunnel(r) {
+  const st = r.stop;
+  const stays = S.ideas.filter(i => i.category === "verblijf" && i.status !== "afgevallen" && stopOf(i)?.id === st.id).sort((a, b) => score(b) - score(a));
+  const chosen = stays.find(i => i.id === st.stayId) || stays.find(i => i.status === "geboekt") || null;
+  const acts = S.ideas.filter(i => i.category !== "verblijf" && i.status !== "afgevallen" && stopOf(i)?.id === st.id).sort((a, b) => score(b) - score(a));
+  let plannedDays = 0;
+  if (r.start) for (let k = 0; k < r.nights; k++) { const d = addDays(r.start, k); if (S.ideas.some(i => i.day === d && i.status !== "afgevallen" && i.category !== "verblijf")) plannedDays++; }
+  return {
+    place: st.status === "vast" ? "done" : "half",
+    stay: chosen?.status === "geboekt" ? "done" : (chosen || stays.length) ? "half" : "todo",
+    act: acts.length >= r.nights ? "done" : acts.length ? "half" : "todo",
+    days: !r.start ? "todo" : plannedDays >= r.nights ? "done" : plannedDays ? "half" : "todo",
+    stays, chosen, acts, plannedDays
+  };
+}
+const routeText = () => stopRanges().map(r => `${r.nights}n ${r.stop.place}`).join(" → ");
+const routeTodo = () => S.me ? S.stops.filter(st => st.status !== "vast" && !(st.votes && st.votes[S.me])) : [];
 
 let toastT;
 function toast(msg) {
@@ -548,27 +737,105 @@ async function ensureMember() {
 }
 const addIdea = (data) => write(() => db.collection("ideas").doc(uid()).set({
   title: data.title, description: data.description || "", category: data.category || "overig",
+  stopId: (data.day && rangeForDay(data.day)?.id) || data.stopId || autoStopId(data.place),
   place: data.place || "", cost: data.cost === "" || data.cost == null ? null : Number(data.cost),
   link: data.link || "", day: data.day || "", time: data.time || "",
   status: data.day ? "gepland" : "voorstel", author: data.author || S.me, createdAt: now(), updatedAt: now(),
   votes: data.author === "claude" || !S.me ? {} : { [S.me]: "ja" }
 }), "Voorstel staat op het bord");
 const patchIdea = (id, patch, msg) => write(() => db.doc("ideas/" + id).update({ ...patch, updatedAt: now(), updatedBy: S.me }), msg);
-const castVote = (id, val) => {
-  const idea = S.ideas.find(i => i.id === id); if (!idea || !S.me) return;
-  const cur = idea.votes?.[S.me];
+const castVote = (id, val, coll = "ideas") => {
+  const list = coll === "stops" ? S.stops : S.ideas;
+  const item = list.find(i => i.id === id); if (!item || !S.me) return;
+  const cur = item.votes?.[S.me];
   // optimistic so the button responds instantly
-  const votes = { ...(idea.votes || {}) }; if (cur === val) delete votes[S.me]; else votes[S.me] = val;
-  S.ideas = S.ideas.map(i => i.id === id ? { ...i, votes } : i); render();
-  return write(() => db.doc("ideas/" + id).update({ votes: { [S.me]: cur === val ? null : val } }));
+  const votes = { ...(item.votes || {}) }; if (cur === val) delete votes[S.me]; else votes[S.me] = val;
+  const next = list.map(i => i.id === id ? { ...i, votes } : i);
+  if (coll === "stops") S.stops = next; else S.ideas = next;
+  render();
+  return write(() => db.doc(coll + "/" + id).update({ votes: { [S.me]: cur === val ? null : val } }));
 };
-const addComment = (ideaId, text, kind = "reactie", changes = null) => write(() => db.collection("comments").doc(uid()).set({
-  ideaId, text, kind, changes, author: S.me, createdAt: now(), resolved: false
+const addComment = (targetId, text, kind = "reactie", changes = null, coll = "ideas") => write(() => db.collection("comments").doc(uid()).set({
+  ...(coll === "stops" ? { stopId: targetId } : { ideaId: targetId }), text, kind, changes, author: S.me, createdAt: now(), resolved: false
 }), kind === "suggestie" ? "Suggestie geplaatst" : null);
+const newStop = (data, order) => ({
+  id: uid(), place: String(data.place).slice(0, 60), nights: nightsOf(data), accType: ACC[data.accType] ? data.accType : "open", note: data.note || "",
+  order, status: "voorstel", stayId: "", createdBy: data.createdBy || S.me, createdAt: now(),
+  votes: data.createdBy === "claude" || !S.me ? {} : { [S.me]: "ja" }
+});
+const maxOrder = () => S.stops.reduce((a, st) => Math.max(a, st.order ?? 0), 0);
+/* Changes the route (nights, order, places) and moves planned activities along with their stop. */
+async function changeRoute(patches, msg, extras = []) {
+  if (!guardWrite()) return false;
+  const before = stopRanges();
+  const kept = S.stops.filter(st => !patches[st.id]?.__delete).map(st => patches[st.id] ? { ...st, ...patches[st.id] } : st);
+  const after = stopRanges(sortedStops([...kept, ...extras]));
+  if (after.reduce((a, r) => a + r.nights, 0) > 30) { toast("Maximaal 30 nachten, anders wordt de planning onoverzichtelijk."); return false; }
+  const findNew = (r0) => after.find(r => r.id === r0.id) || after.find(r => samePlace(r.stop.place, r0.stop.place));
+  const moves = [];
+  for (const i of S.ideas) {
+    const r0 = i.day && S.trip?.start ? rangeForDay(i.day, before) : null;
+    if (r0) {
+      const r1 = findNew(r0);
+      if (!r1) { moves.push([i.id, { day: "", stopId: "", status: i.status === "gepland" ? "voorstel" : i.status }]); continue; }
+      const isLast = r1.idx === after.length - 1;
+      const off = Math.min(daysBetween(r0.start, i.day), isLast ? r1.nights : r1.nights - 1);
+      const nd = addDays(r1.start, off);
+      if (nd !== i.day || i.stopId !== r1.id) moves.push([i.id, { day: nd, stopId: r1.id }]);
+    } else if (i.stopId && patches[i.stopId]?.__delete) {
+      const old = before.find(r => r.id === i.stopId); const r1 = old && findNew(old);
+      moves.push([i.id, { stopId: r1 ? r1.id : "" }]);
+    }
+  }
+  const warn = before.filter(r0 => {
+    const r1 = after.find(r => r.id === r0.id);
+    return r1 && r0.start && (r0.start !== r1.start || r0.end !== r1.end) && S.ideas.some(i => i.id === r0.stop.stayId && i.status === "geboekt");
+  }).map(r => r.stop.place);
+  const ok = await write(async () => {
+    for (const x of extras) { const { id, ...data } = x; await db.doc("stops/" + id).set(data); }
+    for (const [id, p] of Object.entries(patches)) {
+      if (p.__delete) await db.doc("stops/" + id).delete();
+      else await db.doc("stops/" + id).update({ ...p, updatedAt: now(), updatedBy: S.me });
+    }
+    for (const [id, p] of moves) await db.doc("ideas/" + id).update({ ...p, updatedAt: now() });
+  });
+  if (ok) toast(warn.length ? `Let op: het geboekte verblijf in ${warn.join(", ")} valt nu op andere data. Check de boeking.`
+    : msg + (moves.length ? ` · ${moves.length} ${moves.length > 1 ? "ideeën schoven" : "idee schoof"} mee` : ""));
+  return ok;
+}
+async function setNights(st, n) {
+  n = Math.max(1, Math.min(30, n));
+  if (S.routeBusy || n === nightsOf(st)) return;
+  S.routeBusy = true;
+  try { await changeRoute({ [st.id]: { nights: n } }, `${st.place}: ${n} ${n === 1 ? "nacht" : "nachten"}`); }
+  finally { S.routeBusy = false; }
+}
+async function moveStop(id, dir) {
+  if (S.routeBusy) return;
+  const list = sortedStops(); const i = list.findIndex(st => st.id === id); const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  const re = [...list]; [re[i], re[j]] = [re[j], re[i]];
+  const patches = {}; re.forEach((st, k) => { if ((st.order ?? 0) !== k + 1) patches[st.id] = { order: k + 1 }; });
+  S.routeBusy = true;
+  try { await changeRoute(patches, "Volgorde aangepast"); } finally { S.routeBusy = false; }
+}
+function applyTemplate(t) {
+  const base = maxOrder();
+  return changeRoute({}, "Route staat erop. Stem, schuif met nachten en zet vast wat klopt.", t.stops.map(([place, nights, accType], k) => newStop({ place, nights, accType }, base + k + 1)));
+}
+async function chooseStay(st, idea, booked = false) {
+  const prev = S.ideas.find(i => i.id === st.stayId && i.id !== idea.id && i.status === "gepland");
+  return write(async () => {
+    await db.doc("ideas/" + idea.id).update({ status: booked || idea.status === "geboekt" ? "geboekt" : "gepland", stopId: st.id, ...(booked ? { bookedBy: S.me, bookedAt: now() } : {}), updatedAt: now(), updatedBy: S.me });
+    await db.doc("stops/" + st.id).update({ stayId: idea.id, updatedAt: now(), updatedBy: S.me });
+    if (prev) await db.doc("ideas/" + prev.id).update({ status: "voorstel", updatedAt: now() });
+  }, booked ? `Geboekt: ${idea.title}` : `Verblijf in ${st.place}: ${idea.title}`);
+}
 
 /* ---------- render: shell ---------- */
 const TABS = [
   { id: "home", label: "Overzicht", icon: "home" },
+  { id: "route", label: "Route", icon: "route" },
   { id: "ideas", label: "Ideeën", icon: "bulb" },
   { id: "plan", label: "Planning", icon: "cal" },
   { id: "book", label: "Boeken", icon: "bag" },
@@ -583,7 +850,8 @@ function renderTabs() {
   const todo = myTodo().length;
   for (const t of TABS) {
     const b = h("button", { class: "tab", role: "tab", "aria-selected": String(S.tab === t.id), type: "button", onclick: () => setTab(t.id) });
-    b.innerHTML = ic(t.icon) + `<span>${t.label}</span>` + (t.id === "ideas" && todo ? `<span class="count num" aria-label="${todo} wachten op jouw stem">${todo}</span>` : "");
+    const n = t.id === "ideas" ? todo : t.id === "route" ? routeTodo().length : 0;
+    b.innerHTML = ic(t.icon) + `<span>${t.label}</span>` + (n ? `<span class="count num" aria-label="${n} wachten op jouw stem">${n}</span>` : "");
     nav.append(b);
   }
 }
@@ -606,9 +874,10 @@ function renderHeader() {
   if (ids.length > 6) crew.append(h("span", { class: "more" }, `+${ids.length - 6}`));
   if (S.peers.length > 1) crew.append(h("span", { class: "more" }, `${S.peers.length} online`));
   const fab = $("#fab");
-  fab.innerHTML = ic("plus") + "<span>Nieuw voorstel</span>";
-  fab.hidden = S.tab === "ai" || S.tab === "book";
-  fab.onclick = () => openModal("new");
+  const onRoute = S.tab === "route";
+  fab.innerHTML = ic("plus") + `<span>${onRoute ? "Etappe toevoegen" : "Nieuw voorstel"}</span>`;
+  fab.hidden = S.tab === "ai" || S.tab === "book" || (onRoute && !S.stops.length);
+  fab.onclick = () => openModal(onRoute ? "stop" : "new");
 }
 function render() {
   renderTabs(); renderHeader();
@@ -620,7 +889,7 @@ function render() {
   const v = h("div", { class: "view" });
   if (!db && S.ready.db) v.append(banner("Deze pagina werkt samen met je reisgenoten via claude.ai. Hier zie je hem zonder opslag: je kunt rondkijken maar niets bewaren."));
   else if (db && !S.canWrite) v.append(banner("Je kijkt mee. Om te stemmen en voorstellen te doen moet de organisator je uitnodigen als bewerker (Delen → uitnodigen per e-mail)."));
-  ({ home: viewHome, ideas: viewIdeas, plan: viewPlan, book: viewBook, ai: viewAI }[S.tab] || viewHome)(v);
+  ({ home: viewHome, route: viewRoute, ideas: viewIdeas, plan: viewPlan, book: viewBook, ai: viewAI }[S.tab] || viewHome)(v);
   main.append(v);
   for (const [id, [val, a, b]] of Object.entries(kept)) { const el = document.getElementById(id); if (el && !el.disabled) el.value = val; }
   if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus({ preventScroll: true }); const k = kept[focusId]; if (k && el.setSelectionRange && k[1] != null) try { el.setSelectionRange(k[1], k[2]); } catch (e) {} } }
@@ -645,15 +914,16 @@ function viewHome(v) {
   if (start) {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const diff = Math.round((start - today) / 86400000);
-    const endD = parseDate(S.trip.end);
+    const endD = parseDate(tripEnd());
     let big, sub;
     if (diff > 0) { big = `${diff}<small>${diff === 1 ? "nacht" : "nachten"} slapen</small>`; sub = "tot vertrek"; }
     else if (endD && today <= endD) { big = `Dag ${1 - diff}<small>van ${days.length}</small>`; sub = "jullie zijn er!"; }
     else { big = `Bom regresso`; sub = "de reis zit erop"; }
     cd.innerHTML = `<div class="label">${esc(sub)}</div><div class="big num">${big}</div>`;
+    if (S.stops.length) cd.append(routeStrip(stopRanges()));
     const meta = h("div", { class: "meta" });
-    meta.innerHTML = `<div><span class="label">Wanneer</span><b>${esc(fmtShort(S.trip.start))} – ${esc(fmtShort(S.trip.end))}</b></div>
-      <div><span class="label">Waar</span><b>${esc(S.trip.base || "Algarve")}</b></div>
+    meta.innerHTML = `<div><span class="label">Wanneer</span><b>${esc(fmtShort(S.trip.start))} – ${esc(fmtShort(tripEnd()))}</b></div>
+      <div><span class="label">${S.stops.length ? "Route" : "Waar"}</span><b>${esc(S.stops.length ? `${S.stops.length} etappe${S.stops.length > 1 ? "s" : ""}, ${totalNights()} nachten` : S.trip.base || "Algarve")}</b></div>
       <div><span class="label">Groep</span><b class="num">${groupSize()} pers.</b></div>`;
     cd.append(meta);
   } else {
@@ -689,18 +959,27 @@ function viewHome(v) {
   hero.append(st);
   v.append(hero);
 
+  if (S.ready.db) v.append(nextStepCard());
   const grid = h("div", { class: "home-grid" });
   // waiting on you
   const todo = myTodo().sort((a, b) => b.createdAt - a.createdAt);
+  const rTodo = routeTodo();
   const sugWaiting = S.ideas.filter(i => i.author === S.me && openSuggestions(i.id).length);
   const left = h("section", {});
-  left.append(h("div", { class: "section-h", style: "margin-bottom:10px" }, h("h2", {}, "Wacht op jou"), h("span", { class: "muted small" }, todo.length + sugWaiting.length ? "Stem even, dan weet de groep waar ze aan toe zijn." : "")));
+  left.append(h("div", { class: "section-h", style: "margin-bottom:10px" }, h("h2", {}, "Wacht op jou"), h("span", { class: "muted small" }, todo.length + sugWaiting.length + rTodo.length ? "Stem even, dan weet de groep waar ze aan toe zijn." : "")));
   if (!S.ready.db) left.append(h("div", { class: "empty" }, "Even laden…"));
-  else if (!todo.length && !sugWaiting.length) {
+  else if (!todo.length && !sugWaiting.length && !rTodo.length) {
     left.append(h("div", { class: "empty" }, h("h3", {}, S.ideas.length ? "Je bent helemaal bij" : "Het bord is nog leeg"),
       h("div", {}, S.ideas.length ? "Op alles gestemd. Tijd om zelf iets voor te stellen?" : "Zet het eerste idee erop, of laat Claude een paar voorstellen doen.")));
   } else {
     const list = h("div", { class: "card todo-list" });
+    rTodo.forEach(st => {
+      const r = h("div", { class: "todo" });
+      const t = h("div", { class: "t" }, h("button", { class: "linkish", type: "button", onclick: () => openStop(st.id) }, `Route: ${nightsOf(st)} nachten ${st.place}`));
+      t.append(h("span", { class: "small muted" }, `Etappe · ${ACC[st.accType] || "verblijf nog open"} · voorgesteld door ${firstName(st.createdBy)}`));
+      r.append(t, voteCtl(st, true, "stops"));
+      list.append(r);
+    });
     sugWaiting.forEach(i => {
       const r = h("div", { class: "todo" });
       r.append(h("div", { class: "t" }, h("b", {}, i.title), h("span", { class: "small muted" }, `${openSuggestions(i.id).length} suggestie(s) op jouw voorstel`)),
@@ -730,15 +1009,23 @@ function viewHome(v) {
   right.append(h("div", { class: "section-h", style: "margin-bottom:10px" }, h("h2", {}, "Laatste nieuws"), h("span", { class: "spacer" }),
     h("button", { class: "btn small", type: "button", onclick: nudge }, icEl("copy"), "Porretje voor de groep")));
   const ev = [];
-  S.ideas.forEach(i => ev.push({ t: i.createdAt, who: i.author, idea: i, txt: "stelde voor:" }));
-  S.ideas.filter(i => i.status === "geboekt" && i.bookedAt).forEach(i => ev.push({ t: i.bookedAt, who: i.bookedBy, idea: i, txt: "boekte" }));
-  S.comments.forEach(c => { const i = S.ideas.find(x => x.id === c.ideaId); if (i) ev.push({ t: c.createdAt, who: c.author, idea: i, txt: c.kind === "suggestie" ? "deed een suggestie bij" : "reageerde op", quote: c.text }); });
+  const asIdea = (i) => ({ title: i.title, open: () => openIdea(i.id) });
+  const asStop = (st) => ({ title: `etappe ${st.place}`, open: () => openStop(st.id) });
+  S.ideas.forEach(i => ev.push({ t: i.createdAt, who: i.author, idea: asIdea(i), txt: "stelde voor:" }));
+  S.ideas.filter(i => i.status === "geboekt" && i.bookedAt).forEach(i => ev.push({ t: i.bookedAt, who: i.bookedBy, idea: asIdea(i), txt: "boekte" }));
+  S.stops.forEach(st => ev.push({ t: st.createdAt, who: st.createdBy, idea: asStop(st), txt: "zette op de route:" }));
+  S.stops.filter(st => st.status === "vast" && st.lockedAt).forEach(st => ev.push({ t: st.lockedAt, who: st.lockedBy, idea: asStop(st), txt: "zette vast:" }));
+  S.comments.forEach(c => {
+    const i = S.ideas.find(x => x.id === c.ideaId), st = stopById(c.stopId);
+    const target = i ? asIdea(i) : st ? asStop(st) : null;
+    if (target) ev.push({ t: c.createdAt, who: c.author, idea: target, txt: c.kind === "suggestie" ? "deed een suggestie bij" : "reageerde op", quote: c.text });
+  });
   ev.sort((a, b) => b.t - a.t);
   const feed = h("div", { class: "card feed" });
   if (!ev.length) feed.append(h("div", { class: "item muted" }, "Hier zie je wie wat voorstelt, reageert en boekt."));
   ev.slice(0, 12).forEach(e => {
     const txt = h("div", { class: "txt" });
-    txt.append(h("b", {}, firstName(e.who).replace(/^jij$/, "Jij")), " ", e.txt, " ", h("button", { class: "linkish", type: "button", onclick: () => openIdea(e.idea.id) }, e.idea.title));
+    txt.append(h("b", {}, firstName(e.who).replace(/^jij$/, "Jij")), " ", e.txt, " ", h("button", { class: "linkish", type: "button", onclick: e.idea.open }, e.idea.title));
     if (e.quote) txt.append(h("div", { class: "small" }, h("q", {}, e.quote.length > 90 ? e.quote.slice(0, 90) + "…" : e.quote)));
     txt.append(h("div", { class: "small muted" }, ago(e.t)));
     feed.append(h("div", { class: "item" }, avatar(e.who), txt));
@@ -750,22 +1037,23 @@ function viewHome(v) {
 function nudge() {
   const todo = S.ideas.filter(i => i.status === "voorstel");
   const top = [...todo].sort((a, b) => score(b) - score(a)).slice(0, 3);
-  const lines = [`Algarve-update${S.trip?.start ? ` (${fmtShort(S.trip.start)} – ${fmtShort(S.trip.end)})` : ""}:`,
-    `${todo.length} voorstellen wachten op stemmen in Rota Algarve.`];
+  const lines = [`Algarve-update${S.trip?.start ? ` (${fmtShort(S.trip.start)} – ${fmtShort(tripEnd())})` : ""}:`];
+  if (S.stops.length) lines.push(`Route: ${routeText()}${routeTodo().length || S.stops.some(st => st.status !== "vast") ? " (nog niet alles vast)" : ""}`);
+  lines.push(`${todo.length} voorstellen wachten op stemmen in Rota Algarve.`);
   if (top.length) lines.push("Favorieten tot nu toe:", ...top.map(i => `• ${i.title} (${votesOf(i).ja.length}x ja)`));
   lines.push("Stem even mee in de app, dan hoeft het niet hier in de groep 🙂");
   copyText(lines.join("\n"));
 }
 
 /* ---------- vote control & card ---------- */
-function voteCtl(idea, compact = false) {
+function voteCtl(idea, compact = false, coll = "ideas") {
   const mine = idea.votes?.[S.me];
   const v = votesOf(idea);
   const wrap = h("div", { class: "vote", role: "group", "aria-label": "Stem" });
   for (const k of ["ja", "mis", "nee"]) {
     const n = v[k].length;
     wrap.append(h("button", { type: "button", class: k, "aria-pressed": String(mine === k), disabled: !S.me || !db ? true : null,
-      title: VOTE[k], onclick: (e) => { e.stopPropagation(); castVote(idea.id, k); } },
+      title: VOTE[k], onclick: (e) => { e.stopPropagation(); castVote(idea.id, k, coll); } },
       compact ? VOTE[k] : `${VOTE[k]}${n ? " " + n : ""}`));
   }
   return wrap;
@@ -783,11 +1071,13 @@ function ideaCard(i, isTop = false) {
   head.append(cat, h("span", { class: "spacer" }));
   if (i.author === "claude") head.append(h("span", { class: "pill claude" }, "Idee van Claude"));
   else if (!i.author) head.append(h("span", { class: "pill afgevallen" }, "Startidee"));
-  head.append(h("span", { class: "pill " + i.status }, STATUS[i.status] || "Voorstel"));
+  head.append(h("span", { class: "pill " + i.status }, statusLabel(i)));
   c.append(head, h("h3", {}, i.title));
   if (i.description) c.append(h("div", { class: "desc" }, i.description));
   const facts = h("div", { class: "facts" });
-  if (i.place) facts.insertAdjacentHTML("beforeend", `<span>${ic("pin")}${esc(i.place)}</span>`);
+  const st = stopOf(i);
+  if (st) facts.insertAdjacentHTML("beforeend", `<span><i class="dot" style="background:${stopColor(st.id)}"></i>${esc(st.place)}</span>`);
+  if (i.place && !(st && samePlace(st.place, i.place))) facts.insertAdjacentHTML("beforeend", `<span>${ic("pin")}${esc(i.place)}</span>`);
   if (i.cost != null && i.cost !== "") facts.insertAdjacentHTML("beforeend", `<span class="num">${ic("euro")}${i.cost == 0 ? "gratis" : esc(Math.round(i.cost)) + " p.p."}</span>`);
   if (i.day) facts.insertAdjacentHTML("beforeend", `<span>${ic("cal")}${esc(fmtShort(i.day))}${i.time ? " " + esc(i.time) : ""}</span>`);
   const nC = commentsFor(i.id).length, nS = openSuggestions(i.id).length;
@@ -801,6 +1091,120 @@ function ideaCard(i, isTop = false) {
   return c;
 }
 
+/* ---------- view: route (groot → klein) ---------- */
+function routeStrip(ranges) {
+  const strip = h("div", { class: "strip", role: "list", "aria-label": "Route" });
+  ranges.forEach(r => {
+    const seg = h("button", { class: "rseg" + (r.stop.status === "vast" ? "" : " voorstel"), type: "button", role: "listitem", style: `background-color:${r.color};flex:${r.nights} 1 0`,
+      title: `${r.stop.place}: ${r.nights} nachten${r.stop.status === "vast" ? "" : " (nog voorstel)"}`, onclick: () => openStop(r.id) },
+      h("b", {}, r.stop.place), h("span", {}, `${r.nights} n${r.start ? " · " + fmtShort(r.start) : ""}`));
+    strip.append(seg);
+  });
+  return strip;
+}
+function nextStep() {
+  if (!S.trip?.start) return { lvl: 0, text: "Kies jullie vertrekdatum", sub: "Daarna rekent de app alle data van de route uit.", btn: "Reis instellen", go: () => openModal("trip") };
+  if (!S.stops.length) return { lvl: 0, text: "Zet de grove route neer", sub: "Waar slapen jullie en hoeveel nachten? Bijvoorbeeld 3 nachten Lissabon en 5 nachten Albufeira.", btn: "Naar de route", go: () => setTab("route") };
+  const rs = stopRanges();
+  const open = rs.find(r => r.stop.status !== "vast");
+  if (open) return { lvl: 1, text: `Spreek de route af: ${open.stop.place} staat nog open`, sub: `${open.nights} nachten. Stem, schuif met nachten en zet hem vast als iedereen akkoord is.`, btn: "Bekijk etappe", go: () => openStop(open.id) };
+  for (const r of rs) { const f = stopFunnel(r); if (f.stay !== "done") return { lvl: 2, text: f.stays.length ? `Kies en boek het verblijf in ${r.stop.place}` : `Zoek een verblijf in ${r.stop.place}`, sub: `${fmtShort(r.start)} → ${fmtShort(r.end)} · ${ACC[r.stop.accType] || "type nog open"}`, btn: "Verblijf regelen", go: () => openStop(r.id) }; }
+  for (const r of rs) { const f = stopFunnel(r); if (f.act !== "done") return { lvl: 3, text: `Verzamel ideeën voor ${r.stop.place}`, sub: `${f.acts.length} idee${f.acts.length === 1 ? "" : "ën"} voor ${r.nights} dagen.`, btn: `Ideeën voor ${r.stop.place}`, go: () => { S.stopFilter = r.id; setTab("ideas"); } }; }
+  for (const r of rs) { const f = stopFunnel(r); if (f.days !== "done") return { lvl: 4, text: `Maak de dagplanning voor ${r.stop.place}`, sub: `${f.plannedDays} van ${r.nights} dagen gevuld.`, btn: "Naar planning", go: () => { S.planFocus = r.id; setTab("plan"); } }; }
+  return { lvl: 5, text: "Alles staat. Boa viagem!", sub: "Route vast, verblijven geboekt en elke dag gevuld.", btn: null };
+}
+function nextStepCard() {
+  const n = nextStep();
+  const c = h("section", { class: "card next" });
+  const lvl = h("div", { class: "lvl", role: "img", "aria-label": `Stap ${Math.min(n.lvl + 1, 5)} van 5: datum, route, verblijf, activiteiten, dagplanning` });
+  for (let k = 0; k < 5; k++) lvl.append(h("i", { class: k < n.lvl ? "on" : "" }));
+  c.append(h("div", { class: "t" }, h("span", { class: "label" }, "Volgende stap"), h("b", {}, n.text), h("span", { class: "small muted" }, n.sub)), lvl);
+  if (n.btn) c.append(h("button", { class: "btn primary", type: "button", onclick: n.go }, n.btn));
+  return c;
+}
+function nightsCtl(st) {
+  const n = nightsOf(st), locked = st.status === "vast";
+  const w = h("div", { class: "nights", role: "group", "aria-label": `Nachten in ${st.place}`, title: locked ? "Vastgezet. Open de etappe om een wijziging voor te stellen." : "" });
+  w.append(h("button", { type: "button", "aria-label": "Een nacht minder", disabled: locked || n <= 1 || null, onclick: (e) => { e.stopPropagation(); setNights(st, n - 1); } }, "−"),
+           h("b", { class: "num" }, `${n} ${n === 1 ? "nacht" : "nachten"}`),
+           h("button", { type: "button", "aria-label": "Een nacht meer", disabled: locked || null, onclick: (e) => { e.stopPropagation(); setNights(st, n + 1); } }, "+"));
+  return w;
+}
+function stopCard(r, count) {
+  const st = r.stop, f = stopFunnel(r);
+  const c = h("article", { class: "card stop" + (st.status === "vast" ? " vast" : "") });
+  const hd = h("div", { class: "stop-h" });
+  hd.append(h("span", { class: "idx", style: `background:${r.color}` }, String(r.idx + 1)));
+  hd.append(h("div", { class: "stop-t" }, h("button", { class: "linkish", type: "button", onclick: () => openStop(st.id) }, st.place),
+    h("div", { class: "small muted" }, `${r.start ? `${fmtShort(r.start)} → ${fmtShort(r.end)}` : "kies een startdatum voor data"} · ${ACC[st.accType] || "Nog open"}`)));
+  hd.append(nightsCtl(st));
+  const ord = h("div", { class: "ord" });
+  const up = h("button", { class: "iconbtn", type: "button", "aria-label": `${st.place} eerder`, disabled: r.idx === 0 || null, onclick: () => moveStop(st.id, -1) }); up.innerHTML = ic("up");
+  const dn = h("button", { class: "iconbtn", type: "button", "aria-label": `${st.place} later`, disabled: r.idx === count - 1 || null, onclick: () => moveStop(st.id, 1) }); dn.innerHTML = ic("down");
+  ord.append(up, dn); hd.append(ord);
+  c.append(hd);
+  const vr = h("div", { class: "row" });
+  const pill = h("span", { class: "pill " + (st.status === "vast" ? "gepland" : "voorstel") }); pill.innerHTML = (st.status === "vast" ? ic("lock") : "") + (st.status === "vast" ? "Vastgezet" : "Voorstel");
+  vr.append(pill, voteCtl(st, false, "stops"));
+  const nC = commentsFor(st.id).length, nS = openSuggestions(st.id).length;
+  if (nC) vr.append(h("button", { class: "btn small ghost", type: "button", onclick: () => openStop(st.id) }, icEl("chat"), `${nC}${nS ? ` · ${nS} suggestie${nS > 1 ? "s" : ""}` : ""}`));
+  c.append(vr);
+  if (st.note) c.append(h("p", { class: "small muted", style: "margin:0" }, st.note));
+  const fn = h("div", { class: "funnel" });
+  const step = (state, title, b, sub, onclick) => { const e = h("button", { class: "step " + state, type: "button", onclick }); e.innerHTML = `<span class="st"><i></i>${esc(title)}</span>`; e.append(h("b", {}, b), h("span", {}, sub)); return e; };
+  fn.append(
+    step(f.place, "1 · Plek", st.place, st.status === "vast" ? "vastgezet" : "nog voorstel", () => openStop(st.id)),
+    step(f.stay, "2 · Verblijf", f.chosen ? f.chosen.title : f.stays.length ? `${f.stays.length} optie${f.stays.length > 1 ? "s" : ""}` : "nog niets", f.chosen ? (f.chosen.status === "geboekt" ? "geboekt" : "gekozen, nog boeken") : f.stays.length ? "stemmen en kiezen" : "zoek en stel voor", () => openStop(st.id)),
+    step(f.act, "3 · Activiteiten", `${f.acts.length} idee${f.acts.length === 1 ? "" : "ën"}`, `voor ${r.nights} ${r.nights === 1 ? "dag" : "dagen"}`, () => { S.stopFilter = st.id; setTab("ideas"); }),
+    step(f.days, "4 · Dagplanning", r.start ? `${f.plannedDays} / ${r.nights} dagen` : "eerst data", r.start ? "gevuld" : "kies startdatum", () => { S.planFocus = st.id; setTab("plan"); })
+  );
+  c.append(fn);
+  return c;
+}
+function legEl(a, b, date) {
+  const lg = legInfo(a.place, b.place);
+  const el = h("div", { class: "leg" + (lg && lg.hrs > 4 ? " long" : "") });
+  el.innerHTML = ic("car");
+  el.append(`${date ? `Reisdag ${fmtShort(date)}: ` : ""}${a.place} → ${b.place}` + (lg ? `, ± ${fmtHrs(lg.hrs)} rijden (${lg.km} km)${lg.hrs > 4 ? ". Lange rit, overweeg een tussenstop." : ""}` : ", reistijd onbekend"));
+  return el;
+}
+function viewRoute(v) {
+  v.append(h("div", { class: "section-h" }, h("h2", {}, "Route"), h("span", { class: "muted small" }, "Van groot naar klein: eerst waar jullie slapen en hoe lang. Daarna per etappe verblijf, activiteiten en dagplanning.")));
+  if (!S.ready.db) { v.append(h("div", { class: "empty" }, "De route wordt geladen…")); return; }
+  const ranges = stopRanges();
+  const start = S.trip?.start;
+  if (!ranges.length) {
+    const e = h("div", { class: "empty" }, h("h3", {}, "Nog geen route"), h("div", {}, "Begin grof. Kies een opzet of bouw hem zelf op. Daarna kan iedereen stemmen en met nachten schuiven."));
+    const tpl = h("div", { class: "row", style: "justify-content:center;margin-top:14px" });
+    TEMPLATES.forEach(t => tpl.append(h("button", { class: "btn", type: "button", onclick: () => applyTemplate(t) }, t.label)));
+    e.append(tpl, h("div", { class: "row", style: "justify-content:center;margin-top:10px" },
+      h("button", { class: "btn primary", type: "button", onclick: () => openModal("stop") }, icEl("plus"), "Etappe toevoegen"),
+      sample ? h("button", { class: "btn", type: "button", onclick: () => { setTab("ai"); runPreset("route"); } }, icEl("spark"), "Laat Claude een route voorstellen") : null));
+    v.append(e);
+    return;
+  }
+  const sum = h("section", { class: "card route-sum" });
+  const facts = h("div", { class: "facts4" });
+  const n = totalNights();
+  facts.innerHTML = `<div><span class="label">Vertrek</span><b>${start ? esc(fmtShort(start)) : "nog kiezen"}</b></div>
+    <div><span class="label">Nachten</span><b class="num">${n}</b></div>
+    <div><span class="label">Terug</span><b>${start ? esc(fmtShort(tripEnd())) : "—"}</b></div>
+    <div><span class="label">Vast</span><b class="num">${S.stops.filter(st => st.status === "vast").length} / ${S.stops.length}</b></div>`;
+  facts.append(h("span", { class: "spacer" }), h("button", { class: "btn small", type: "button", onclick: () => openModal("trip") }, icEl("cal"), start ? "Datum wijzigen" : "Kies startdatum"));
+  sum.append(facts, routeStrip(ranges));
+  const lg = h("div", { class: "legend" }); lg.innerHTML = `<span><i></i>vastgezet</span><span><i class="striped"></i>nog voorstel</span><span>Breedte = aantal nachten. Tik op een etappe voor details.</span>`;
+  sum.append(lg);
+  v.append(sum);
+  const list = h("div", { class: "stops" });
+  ranges.forEach((r, k) => {
+    if (k > 0) list.append(legEl(ranges[k - 1].stop, r.stop, r.start));
+    list.append(stopCard(r, ranges.length));
+  });
+  v.append(list);
+  v.append(h("div", { class: "row" }, h("button", { class: "btn primary", type: "button", onclick: () => openModal("stop") }, icEl("plus"), "Etappe toevoegen"),
+    sample ? h("button", { class: "btn", type: "button", onclick: () => { setTab("ai"); runPreset("route"); } }, icEl("spark"), "Vraag Claude om een route") : null));
+}
+
 /* ---------- view: ideas ---------- */
 function viewIdeas(v) {
   v.append(h("div", { class: "section-h" }, h("h2", {}, "Ideeënbord"), h("span", { class: "muted small" }, "Stem met Ja!, Misschien of Nee. Klik op een kaart om te reageren of een wijziging voor te stellen.")));
@@ -812,12 +1216,22 @@ function viewIdeas(v) {
   const sort = h("select", { class: "sel", id: "sort", "aria-label": "Sorteer" });
   [["stemmen", "Meeste stemmen"], ["nieuw", "Nieuwste"], ["prijs", "Goedkoopste"]].forEach(([k, l]) => sort.append(h("option", { value: k, selected: S.sort === k || null }, l)));
   sort.onchange = () => { S.sort = sort.value; render(); };
-  tb.append(chips, sort);
+  tb.append(chips);
+  if (S.stops.length) {
+    const sf = h("select", { class: "sel", id: "stopf", "aria-label": "Filter op etappe" }, h("option", { value: "alle" }, "Alle etappes"));
+    stopRanges().forEach(r => sf.append(h("option", { value: r.id, selected: S.stopFilter === r.id || null }, `${r.idx + 1}. ${r.stop.place}`)));
+    sf.append(h("option", { value: "geen", selected: S.stopFilter === "geen" || null }, "Zonder etappe"));
+    sf.onchange = () => { S.stopFilter = sf.value; render(); };
+    tb.append(sf);
+  }
+  tb.append(sort);
   v.append(tb);
 
   let list = S.ideas.filter(i => S.showClosed || i.status !== "afgevallen");
   if (S.filter === "mijn") list = list.filter(i => !(i.votes && i.votes[S.me]));
   else if (S.filter !== "alle") list = list.filter(i => i.category === S.filter);
+  if (S.stopFilter === "geen") list = list.filter(i => !stopOf(i));
+  else if (stopById(S.stopFilter)) list = list.filter(i => stopOf(i)?.id === S.stopFilter);
   list.sort(S.sort === "nieuw" ? (a, b) => b.createdAt - a.createdAt
           : S.sort === "prijs" ? (a, b) => (Number(a.cost) || 0) - (Number(b.cost) || 0)
           : (a, b) => score(b) - score(a) || b.createdAt - a.createdAt);
@@ -867,32 +1281,41 @@ function viewPlan(v) {
   }
   const wrap = h("div", { class: "plan" });
   const pool = h("aside", { class: "card pool" });
-  const unplanned = S.ideas.filter(i => i.status === "voorstel" && !i.day && i.category !== "verblijf").sort((a, b) => score(b) - score(a));
+  const ord = (i) => { const st = stopOf(i); return st ? sortedStops().indexOf(st) : 99; };
+  const unplanned = S.ideas.filter(i => i.status === "voorstel" && !i.day && i.category !== "verblijf").sort((a, b) => ord(a) - ord(b) || score(b) - score(a));
   pool.append(h("div", { class: "label" }, `Nog in te plannen (${unplanned.length})`));
   if (!unplanned.length) pool.append(h("div", { class: "small muted" }, "Alles met stemmen staat ingepland. Mooi."));
   unplanned.forEach(i => {
     const m = h("div", { class: "mini", draggable: "true", onclick: () => openIdea(i.id) });
     m.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", i.id); });
-    m.append(icEl(CATS[i.category]?.icon || "dots"), h("b", {}, i.title), tally(i));
+    const st = stopOf(i);
+    m.append(icEl(CATS[i.category]?.icon || "dots"), h("b", {}, i.title));
+    if (st) m.append(h("i", { class: "dot", title: st.place, style: `background:${stopColor(st.id)}` }));
     pool.append(m);
   });
   pool.append(h("button", { class: "btn small", type: "button", style: "margin-top:6px", onclick: () => { setTab("ai"); runPreset("plan"); } }, icEl("spark"), "Laat Claude een dagplanning maken"));
   wrap.append(pool);
 
   const list = h("div", { class: "days" });
-  const stay = S.ideas.filter(i => i.category === "verblijf" && (i.status === "geboekt" || i.status === "gepland"));
+  const ranges = stopRanges();
   days.forEach((d, idx) => {
     const dd = parseDate(d);
+    const r = rangeForDay(d, ranges);
+    const first = r && daysBetween(S.trip.start, d) === r.from;
+    if (first) list.append(stopBand(r));
     const items = S.ideas.filter(i => i.day === d && i.status !== "afgevallen").sort((a, b) => (a.time || "99").localeCompare(b.time || "99"));
     const day = h("section", { class: "card day" });
     day.addEventListener("dragover", e => { e.preventDefault(); day.classList.add("drop-ok"); });
     day.addEventListener("dragleave", () => day.classList.remove("drop-ok"));
-    day.addEventListener("drop", e => { e.preventDefault(); day.classList.remove("drop-ok"); const id = e.dataTransfer.getData("text/plain"); if (id) patchIdea(id, { day: d, status: S.ideas.find(i => i.id === id)?.status === "geboekt" ? "geboekt" : "gepland" }, `Ingepland op ${fmtShort(d)}`); });
+    day.addEventListener("drop", e => { e.preventDefault(); day.classList.remove("drop-ok"); const id = e.dataTransfer.getData("text/plain"); if (id) patchIdea(id, { day: d, stopId: r?.id || "", status: S.ideas.find(i => i.id === id)?.status === "geboekt" ? "geboekt" : "gepland" }, `Ingepland op ${fmtShort(d)}`); });
     const hd = h("div", { class: "day-h" });
-    hd.innerHTML = `<span class="dnum num">${dd.getDate()}</span><div><div class="dname">${esc(DOWL[dd.getDay()])}</div><div class="small muted">Dag ${idx + 1}${idx === 0 ? " · aankomst" : idx === days.length - 1 ? " · vertrek" : ""}</div></div>`;
-    if (stay.length && idx === 0) hd.insertAdjacentHTML("beforeend", `<span class="spacer"></span><span class="pill gepland">${ic("bed")}${esc(stay[0].title)}</span>`);
+    let sub = `Dag ${idx + 1}`;
+    if (idx === 0) sub += r ? ` · aankomst ${r.stop.place}` : " · aankomst";
+    else if (idx === days.length - 1) sub += " · vertrek";
+    else if (first && r.idx > 0) { const prev = ranges[r.idx - 1].stop.place; const lg = legInfo(prev, r.stop.place); sub += ` · reisdag ${prev} → ${r.stop.place}${lg ? ` (± ${fmtHrs(lg.hrs)})` : ""}`; }
+    hd.innerHTML = `<span class="dnum num"${r ? ` style="color:${r.color}"` : ""}>${dd.getDate()}</span><div style="min-width:0"><div class="dname">${esc(DOWL[dd.getDay()])}</div><div class="small muted">${esc(sub)}</div></div>`;
     day.append(hd);
-    if (!items.length) day.append(h("div", { class: "none" }, "Vrije dag. Strand, zwembad of iets plannen?"));
+    if (!items.length) day.append(h("div", { class: "none" }, r && r.idx > 0 && first ? "Reisdag. Nog vrij voor iets onderweg." : "Nog vrij. Sleep een idee hierheen of open er een."));
     items.forEach(i => {
       const sl = h("div", { class: "slot", tabindex: "0", onclick: () => openIdea(i.id), onkeydown: (e) => { if (e.key === "Enter") openIdea(i.id); } });
       sl.append(h("span", { class: "time" }, i.time || "—"));
@@ -908,19 +1331,32 @@ function viewPlan(v) {
   });
   wrap.append(list);
   v.append(wrap);
+  if (S.planFocus) { const id = S.planFocus; S.planFocus = null; requestAnimationFrame(() => document.getElementById("band-" + id)?.scrollIntoView({ block: "start" })); }
+}
+function stopBand(r) {
+  const f = stopFunnel(r);
+  const band = h("div", { class: "stop-band", id: "band-" + r.id }, h("i", { class: "dot", style: `background:${r.color}` }), h("h3", {}, r.stop.place),
+    h("span", { class: "small muted" }, `${r.nights} ${r.nights === 1 ? "nacht" : "nachten"}${r.start ? ` · ${fmtShort(r.start)} → ${fmtShort(r.end)}` : ""}`));
+  if (f.chosen) { const p = h("span", { class: "pill " + f.chosen.status }); p.innerHTML = ic("bed") + esc(f.chosen.title); band.append(p); }
+  band.append(h("span", { class: "spacer" }), h("button", { class: "btn small ghost", type: "button", onclick: () => openStop(r.id) }, "Etappe"));
+  return band;
 }
 
 /* ---------- view: book ---------- */
 function bookingLinks(opts = {}) {
   const t = S.trip || {};
-  const dest = opts.place ? `${opts.place}, Portugal` : (t.base ? `${t.base}, Portugal` : "Algarve, Portugal");
-  const a = t.start, b = t.end, n = groupSize();
+  const destOf = (pl) => placeInfo(pl)?.q || `${pl}, Portugal`;
+  const first = sortedStops()[0];
+  const dest = opts.place ? destOf(opts.place) : first ? destOf(first.place) : (t.base ? destOf(t.base) : "Algarve, Portugal");
+  const a = opts.checkin || t.start, b = opts.checkout || tripEnd(), n = groupSize();
+  const HT = { villa: 213, appartement: 201, hotel: 204 };
+  const nflt = HT[opts.accType] ? `&nflt=ht_id%3D${HT[opts.accType]}` : "";
   const rooms = Math.max(1, Math.ceil(n / 2));
   const yy = (s) => s ? s.slice(2).replace(/-/g, "") : "";
   const from = (t.from || "AMS").toLowerCase();
   const q = encodeURIComponent(opts.q || dest);
   return {
-    booking: `https://www.booking.com/searchresults.nl.html?ss=${encodeURIComponent(dest)}${a ? `&checkin=${a}` : ""}${b ? `&checkout=${b}` : ""}&group_adults=${n}&no_rooms=${rooms}&group_children=0`,
+    booking: `https://www.booking.com/searchresults.nl.html?ss=${encodeURIComponent(dest)}${a ? `&checkin=${a}` : ""}${b ? `&checkout=${b}` : ""}&group_adults=${n}&no_rooms=${opts.accType === "villa" ? 1 : rooms}&group_children=0${nflt}`,
     airbnb: `https://www.airbnb.nl/s/${encodeURIComponent(dest.replace(/, /g, "--").replace(/ /g, "-"))}/homes?adults=${n}${a ? `&checkin=${a}` : ""}${b ? `&checkout=${b}` : ""}`,
     skyscanner: a && b ? `https://www.skyscanner.nl/transport/vluchten/${from}/fao/${yy(a)}/${yy(b)}/?adultsv2=${n}` : `https://www.skyscanner.nl/transport/vluchten/${from}/fao/`,
     gflights: `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${from.toUpperCase()} to FAO${a ? ` on ${a}` : ""}${b ? ` through ${b}` : ""}`)}`,
@@ -934,22 +1370,32 @@ function viewBook(v) {
   const t = S.trip || {};
   v.append(h("div", { class: "section-h" }, h("h2", {}, "Boeken"), h("span", { class: "muted small" }, "Links openen bij de aanbieder, met jullie data en groepsgrootte alvast ingevuld.")));
   const f = h("div", { class: "card tripform" });
-  f.innerHTML = `<div><span class="label">Data</span><div><b>${t.start ? esc(fmtShort(t.start) + " – " + fmtShort(t.end)) : "nog niet gekozen"}</b></div></div>
-    <div><span class="label">Uitvalsbasis</span><div><b>${esc(t.base || "Algarve")}</b></div></div>
+  const rs = stopRanges();
+  const inA = rs.length ? nearestAirport(rs[0].stop.place) : "FAO", outA = rs.length ? nearestAirport(rs[rs.length - 1].stop.place) : "FAO";
+  const from = (t.from || "AMS").toUpperCase();
+  f.innerHTML = `<div><span class="label">Data</span><div><b>${t.start ? esc(fmtShort(t.start) + " – " + fmtShort(tripEnd())) : "nog niet gekozen"}</b></div></div>
+    <div><span class="label">${rs.length ? "Route" : "Uitvalsbasis"}</span><div><b>${esc(rs.length ? routeText() : t.base || "Algarve")}</b></div></div>
     <div><span class="label">Personen</span><div><b class="num">${groupSize()}</b></div></div>
-    <div><span class="label">Vertrek vanaf</span><div><b>${esc((t.from || "AMS").toUpperCase())} → FAO</b></div></div>`;
+    <div><span class="label">Vluchten</span><div><b>${esc(inA === outA ? `${from} ⇄ ${inA}` : `${from} → ${inA}, ${outA} → ${from}`)}</b></div></div>`;
   f.append(h("button", { class: "btn", type: "button", onclick: () => openModal("trip") }, icEl("edit"), "Aanpassen"));
   v.append(f);
   const L = bookingLinks();
+  const yy = (x) => x ? x.slice(2).replace(/-/g, "") : "";
+  const n = groupSize(), end = tripEnd();
+  const oneWay = (o, d, date) => date ? `https://www.skyscanner.nl/transport/vluchten/${o.toLowerCase()}/${d.toLowerCase()}/${yy(date)}/?adultsv2=${n}` : `https://www.skyscanner.nl/transport/vluchten/${o.toLowerCase()}/${d.toLowerCase()}/`;
+  const gOne = (o, d, date) => `https://www.google.com/travel/flights?q=${encodeURIComponent(`One way flights from ${o} to ${d}${date ? ` on ${date}` : ""}`)}`;
+  const flightCards = inA === outA
+    ? [["plane", "Skyscanner", `Retour ${from} ⇄ ${AIRPORT_NAME[inA]} vergelijken.`, t.start && end ? `https://www.skyscanner.nl/transport/vluchten/${from.toLowerCase()}/${inA.toLowerCase()}/${yy(t.start)}/${yy(end)}/?adultsv2=${n}` : oneWay(from, inA)],
+       ["plane", "Google Flights", "Prijsgrafiek per dag, handig om data te schuiven.", `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${from} to ${inA}${t.start ? ` on ${t.start}` : ""}${end ? ` through ${end}` : ""}`)}`]]
+    : [["plane", `Heen: ${from} → ${AIRPORT_NAME[inA]}`, `Enkele reis ${t.start ? fmtShort(t.start) : ""}. Jullie route begint in ${rs[0].stop.place}.`, oneWay(from, inA, t.start)],
+       ["plane", `Terug: ${AIRPORT_NAME[outA]} → ${from}`, `Enkele reis ${end ? fmtShort(end) : ""}. Scheelt de rit terug naar ${AIRPORT_NAME[inA]}.`, oneWay(outA, from, end)],
+       ["plane", "Google Flights", "Beide enkele reizen naast elkaar vergelijken.", gOne(from, inA, t.start)]];
   const cards = [
-    ["bed", "Booking.com", "Hotels en appartementen. Kamers alvast verdeeld per 2 personen.", L.booking],
-    ["home", "Airbnb", "Villa of huis met zwembad voor de hele groep.", L.airbnb],
-    ["plane", "Skyscanner", `Vluchten ${(t.from || "AMS").toUpperCase()} → Faro vergelijken.`, L.skyscanner],
-    ["plane", "Google Flights", "Prijsgrafiek per dag, handig om data te schuiven.", L.gflights],
-    ["car", "Huurauto", "Via Booking.com Cars. In de Algarve is een auto bijna onmisbaar.", L.cars],
+    ...flightCards,
+    ["car", "Huurauto", inA === outA ? "Via Booking.com Cars. In de Algarve is een auto bijna onmisbaar." : `Ophalen in ${AIRPORT_NAME[inA]}, inleveren in ${AIRPORT_NAME[outA]}. Reken op een toeslag voor enkele reis.`, L.cars],
     ["ticket", "GetYourGuide", "Boottochten, kajak, surfles en dagtrips.", L.gyg],
     ["fork", "Tripadvisor", "Restaurants en reviews in de buurt.", L.tripadvisor],
-    ["map", "Google Maps", "Kaart van jullie uitvalsbasis.", L.maps]
+    ["map", "Google Maps", "Kaart van jullie eerste bestemming.", L.maps]
   ];
   const g = h("div", { class: "book-grid" });
   cards.forEach(([icon, name, txt, href]) => {
@@ -959,8 +1405,27 @@ function viewBook(v) {
   });
   v.append(g);
 
-  const stays = S.ideas.filter(i => i.category === "verblijf" && i.status !== "afgevallen").sort((a, b) => score(b) - score(a));
-  v.append(h("div", { class: "section-h", style: "margin-top:8px" }, h("h2", {}, "Verblijf-stemming"), h("span", { class: "muted small" }, "Plak een link van Booking.com of Airbnb als voorstel. De groep stemt, de winnaar boek je.")));
+  if (rs.length) {
+    v.append(h("div", { class: "section-h", style: "margin-top:8px" }, h("h2", {}, "Verblijf per etappe"), h("span", { class: "muted small" }, "Zoeklinks met de data van elke etappe. Plak wat je vindt als voorstel; de groep stemt.")));
+    const box = h("div", { class: "etappes" });
+    rs.forEach(r => {
+      const f = stopFunnel(r), st = r.stop;
+      const BL = bookingLinks({ place: st.place, checkin: r.start, checkout: r.end, accType: st.accType });
+      const row = h("div", { class: "card etappe-row" });
+      row.append(h("i", { class: "dot", style: `background:${r.color};width:12px;height:12px` }));
+      row.append(h("div", { class: "t" }, h("b", {}, `${st.place} · ${r.nights} ${r.nights === 1 ? "nacht" : "nachten"}`),
+        h("div", { class: "small muted" }, `${r.start ? fmtShort(r.start) + " → " + fmtShort(r.end) + " · " : ""}${ACC[st.accType] || "Nog open"} · ${f.chosen ? (f.chosen.status === "geboekt" ? "geboekt: " : "gekozen: ") + f.chosen.title : f.stays.length ? f.stays.length + " optie(s) om op te stemmen" : "nog geen opties"}`)));
+      row.append(h("div", { class: "row" },
+        h("a", { class: "btn small", href: BL.booking, target: "_blank", rel: "noopener" }, "Booking.com"),
+        h("a", { class: "btn small", href: BL.airbnb, target: "_blank", rel: "noopener" }, "Airbnb"),
+        h("button", { class: "btn small primary", type: "button", onclick: () => openStop(st.id) }, f.chosen ? "Bekijk" : f.stays.length ? "Kiezen" : "Voorstellen")));
+      box.append(row);
+    });
+    v.append(box);
+  }
+  const stays = S.ideas.filter(i => i.category === "verblijf" && i.status !== "afgevallen" && !(rs.length && stopOf(i))).sort((a, b) => score(b) - score(a));
+  if (rs.length && !stays.length) return;
+  v.append(h("div", { class: "section-h", style: "margin-top:8px" }, h("h2", {}, rs.length ? "Verblijf zonder etappe" : "Verblijf-stemming"), h("span", { class: "muted small" }, rs.length ? "Deze voorstellen hangen nog aan geen etappe. Open ze en kies een etappe." : "Plak een link van Booking.com of Airbnb als voorstel. De groep stemt, de winnaar boek je.")));
   if (!stays.length) {
     v.append(h("div", { class: "empty" }, h("h3", {}, "Nog geen verblijf voorgesteld"), h("div", {}, "Vond je iets moois? Zet het op het bord met de link erbij."),
       h("div", { style: "margin-top:12px" }, h("button", { class: "btn primary", type: "button", onclick: () => openModal("new", { category: "verblijf" }) }, "Verblijf voorstellen"))));
@@ -973,22 +1438,33 @@ function viewBook(v) {
 function tripContext() {
   const t = S.trip || {};
   const lines = [
-    `Reis: ${t.name || "Algarve"}; data: ${t.start || "onbekend"} t/m ${t.end || "onbekend"}; uitvalsbasis: ${t.base || "nog niet gekozen"}; groep: ${groupSize()} personen; budget p.p.: ${t.budget ? "€" + t.budget : "onbekend"}; vertrek vanaf: ${(t.from || "AMS").toUpperCase()}.`,
+    `Reis: ${t.name || "Algarve"}; data: ${t.start || "onbekend"} t/m ${tripEnd() || "onbekend"}; ${S.stops.length ? "" : `uitvalsbasis: ${t.base || "nog niet gekozen"}; `}groep: ${groupSize()} personen; budget p.p.: ${t.budget ? "€" + t.budget : "onbekend"}; vertrek vanaf: ${(t.from || "AMS").toUpperCase()}.`,
     t.notes ? `Wensen van de groep: ${t.notes}` : "",
+    S.stops.length ? "Route (etappes in volgorde):" : "Route: nog geen etappes.",
+    ...stopRanges().map(r => { const f = stopFunnel(r); const v = votesOf(r.stop); return `${r.idx + 1}. ${r.stop.place}, ${r.nights} nachten${r.start ? ` (${r.start} → ${r.end})` : ""}; verblijf: ${ACC[r.stop.accType] || "open"}${f.chosen ? ` – ${f.chosen.title} (${f.chosen.status})` : ""}; status: ${r.stop.status}; stemmen ${v.ja.length}/${v.mis.length}/${v.nee.length}`; }),
     "Ideeën op het bord (titel | categorie | status | dag | plaats | kosten p.p. | stemmen ja/misschien/nee):"
   ];
   S.ideas.slice(0, 80).forEach(i => {
     const v = votesOf(i);
-    lines.push(`- ${i.title} | ${i.category} | ${i.status} | ${i.day || "-"} ${i.time || ""} | ${i.place || "-"} | ${i.cost ?? "-"} | ${v.ja.length}/${v.mis.length}/${v.nee.length}`);
+    lines.push(`- ${i.title} | ${i.category} | ${i.status} | ${i.day || "-"} ${i.time || ""} | ${i.place || "-"}${stopOf(i) ? ` (etappe ${stopOf(i).place})` : ""} | ${i.cost ?? "-"} | ${v.ja.length}/${v.mis.length}/${v.nee.length}`);
   });
   const recent = [...S.comments].sort((a, b) => b.createdAt - a.createdAt).slice(0, 30);
   if (recent.length) {
     lines.push("Recente reacties (op idee):");
-    recent.forEach(c => { const i = S.ideas.find(x => x.id === c.ideaId); if (i) lines.push(`- [${i.title}] ${c.kind}: ${c.text.slice(0, 200)}`); });
+    recent.forEach(c => { const i = S.ideas.find(x => x.id === c.ideaId), st = stopById(c.stopId); const what = i ? i.title : st ? "etappe " + st.place : null; if (what) lines.push(`- [${what}] ${c.kind}: ${(c.text || "").slice(0, 200)}${c.changes ? " (wijziging: " + JSON.stringify(c.changes) + ")" : ""}`); });
   }
   return lines.filter(Boolean).join("\n");
 }
 const PRESETS = {
+  route: { icon: "route", title: "Stel een route voor", sub: "Grove opzet: welke plekken, hoeveel nachten", json: "route",
+    prompt: () => {
+      const n = totalNights() || (S.trip?.start && S.trip?.end ? daysBetween(S.trip.start, S.trip.end) : 0);
+      return `Je bent een reisplanner die Portugal goed kent. Stel een grove route voor deze groepsreis: welke plaatsen als uitvalsbasis, in welke volgorde en hoeveel nachten per plek. ${n ? `Totaal precies ${n} nachten.` : "Totaal 7 tot 10 nachten."} Houd rekening met reistijd tussen plekken, de vluchten (Lissabon of Faro) en wat de groep leuk vindt. Liever weinig verhuizingen: maximaal 4 etappes.
+
+${tripContext()}
+
+Antwoord met alleen een JSON-array van objecten: {"place": string (plaatsnaam, bij voorkeur een van: ${Object.keys(PLACES).join(", ")}), "nights": number, "accType": één van ${Object.keys(ACC).join("|")}, "why": string (max 1 zin, Nederlands)}.`;
+    } },
   ideas: { icon: "bulb", title: "Nieuwe ideeën", sub: "5 voorstellen die passen bij wat de groep leuk vindt", json: true,
     prompt: () => `Je bent een reisplanner die de Algarve (Portugal) goed kent. Hieronder staat de groepsreis.\n\n${tripContext()}\n\nStel 5 NIEUWE ideeën voor die nog niet op het bord staan en passen bij wat de groep positief stemt. Houd rekening met het seizoen en de groepsgrootte. Gebruik bestaande, echte plekken. Antwoord met alleen een JSON-array van objecten: {"title": string (kort, Nederlands), "category": één van ${Object.keys(CATS).join("|")}, "place": string, "cost": number (euro per persoon, 0 als gratis), "description": string (max 2 zinnen, Nederlands, praktisch)}.` },
   plan: { icon: "cal", title: "Maak een dagplanning", sub: "Verdeelt de favorieten logisch over de dagen", prompt: () => `Je bent een reisplanner die de Algarve goed kent. Maak een dag-voor-dag-planning voor deze groepsreis. Gebruik vooral ideeën met veel ja-stemmen, groepeer op regio om rijtijd te beperken, laat ruimte voor strand en luieren, en noem per dag ochtend, middag en avond. Vul gaten met een kort eigen voorstel en markeer dat met (nieuw). Schrijf in het Nederlands, kort en scanbaar met kopjes per dag.\n\n${tripContext()}` },
@@ -1041,7 +1517,7 @@ function renderMsg(m, idx) {
   const wrap = h("div", { class: "msg bot" });
   const b = h("div", { class: "bubble" });
   if (m.pending && !m.content) b.innerHTML = `<span class="thinking" aria-label="Claude denkt na"><i></i><i></i><i></i></span>`;
-  else if (m.cards) b.innerHTML = `<p>${esc(m.content)}</p>`;
+  else if (m.cards || m.route) b.innerHTML = `<p>${esc(m.content)}</p>`;
   else b.innerHTML = mdLite(m.content);
   if (m.error) b.append(h("div", { class: "small", style: "color:var(--no);margin-top:6px" }, m.error));
   wrap.append(b);
@@ -1059,10 +1535,32 @@ function renderMsg(m, idx) {
     });
     wrap.append(g);
   }
-  if (!m.pending && !m.cards && m.content && idx === S.chat.length - 1) {
+  if (m.route) wrap.append(routeSuggestion(m));
+  if (!m.pending && !m.cards && !m.route && m.content && idx === S.chat.length - 1) {
     wrap.append(h("div", { class: "row", style: "margin-top:6px" }, h("button", { class: "btn small ghost", type: "button", onclick: () => copyText(m.content) }, icEl("copy"), "Kopieer")));
   }
   return wrap;
+}
+function routeSuggestion(m) {
+  const box = h("div", { class: "route-cards" });
+  m.route.forEach(x => {
+    const exists = S.stops.some(st => samePlace(st.place, x.place));
+    const card = h("div", { class: "card stay-row" });
+    card.append(h("div", { class: "t" }, h("b", {}, `${x.nights} ${x.nights === 1 ? "nacht" : "nachten"} ${x.place}`), h("div", { class: "small muted" }, `${ACC[x.accType]}${x.why ? " · " + x.why : ""}`)));
+    card.append(h("button", { class: "btn small", type: "button", disabled: exists || null, onclick: async () => { await changeRoute({}, `${x.place} toegevoegd aan de route`, [newStop({ ...x, createdBy: "claude" }, maxOrder() + 1)]); } }, exists ? "Op de route" : "+ Toevoegen"));
+    box.append(card);
+  });
+  const take = () => {
+    const del = Object.fromEntries(S.stops.map(st => [st.id, { __delete: true }]));
+    return changeRoute(del, "Route overgenomen", m.route.map((x, k) => newStop({ ...x, createdBy: "claude" }, k + 1)));
+  };
+  const row = h("div", { class: "row" });
+  if (m.confirm) row.append(h("div", { class: "confirm" }, `Vervangt de huidige route (${S.stops.length} etappe${S.stops.length > 1 ? "s" : ""}). Ideeën schuiven mee naar dezelfde plaats.`, h("span", { class: "spacer" }),
+    h("button", { class: "btn small", type: "button", onclick: () => { m.confirm = false; render(); } }, "Annuleer"),
+    h("button", { class: "btn small primary", type: "button", onclick: async () => { m.confirm = false; if (await take()) setTab("route"); } }, "Vervang route")));
+  else row.append(h("button", { class: "btn small primary", type: "button", onclick: async () => { if (S.stops.length) { m.confirm = true; render(); } else if (await take()) setTab("route"); } }, icEl("route"), "Neem deze route over"));
+  box.append(row);
+  return box;
 }
 function aiErr(e) {
   switch (e?.code) {
@@ -1085,7 +1583,15 @@ async function runPreset(key) {
   S.chat.push(msg); S.aiBusy = true; render();
   aiCtl = new AbortController();
   try {
-    if (p.json) {
+    if (p.json === "route") {
+      const arr = await sample.json(p.prompt(), { signal: aiCtl.signal, cache: false });
+      const route = (Array.isArray(arr) ? arr : []).filter(x => x && x.place).slice(0, 6).map(x => ({
+        place: placeInfo(x.place)?.key || String(x.place).slice(0, 60), nights: Math.max(1, Math.min(30, Math.round(Number(x.nights) || 1))),
+        accType: ACC[x.accType] ? x.accType : "open", why: String(x.why || "").slice(0, 200)
+      }));
+      msg.content = route.length ? `Mijn voorstel: ${route.map(r => `${r.nights}n ${r.place}`).join(" → ")}.` : "Ik kon geen bruikbare route maken. Probeer het nog eens.";
+      msg.route = route.length ? route : null;
+    } else if (p.json) {
       const arr = await sample.json(p.prompt(), { signal: aiCtl.signal, cache: false });
       const cards = (Array.isArray(arr) ? arr : []).filter(x => x && x.title).slice(0, 8).map(x => ({
         title: String(x.title).slice(0, 90), category: CATS[x.category] ? x.category : "overig",
@@ -1109,7 +1615,7 @@ async function askFree(q) {
   S.chat.push({ role: "user", content: q });
   const msg = { role: "assistant", content: "", pending: true };
   S.chat.push(msg); S.aiBusy = true; render();
-  const turns = S.chat.filter(m => !m.pending && m.content && !m.cards && !m.label).slice(-10).map(m => ({ role: m.role, content: m.content }));
+  const turns = S.chat.filter(m => !m.pending && m.content && !m.cards && !m.route && !m.label).slice(-10).map(m => ({ role: m.role, content: m.content }));
   aiCtl = new AbortController();
   try {
     await sample([{ role: "user", content: rules }, ...turns], { signal: aiCtl.signal, cache: false, onText: ({ text }) => { msg.content = text; msg.pending = false; updateLastMsg(); } });
@@ -1124,19 +1630,20 @@ function updateLastMsg() {
 }
 
 /* ---------- overlay: idea sheet & forms ---------- */
-function openIdea(id) { S.open = id; S.modal = null; renderOverlay(); }
+function openIdea(id) { S.open = id; S.openStop = null; S.modal = null; renderOverlay(); }
+function openStop(id) { S.openStop = id; S.open = null; S.modal = null; renderOverlay(); }
 function openModal(kind, preset = {}) {
   S.modal = kind; S.editDraft = preset;
   if (kind !== "edit") S.open = null;
   renderOverlay();
 }
-function closeOverlay() { S.open = null; S.modal = null; renderOverlay(); }
-document.addEventListener("keydown", e => { if (e.key === "Escape" && (S.open || S.modal)) closeOverlay(); });
+function closeOverlay() { S.open = null; S.openStop = null; S.modal = null; renderOverlay(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && (S.open || S.modal || S.openStop)) closeOverlay(); });
 
 let lastOverlayKey = "";
 function renderOverlay() {
   const o = $("#overlay");
-  const key = S.modal ? "m:" + S.modal : S.open ? "i:" + S.open : "";
+  const key = S.modal ? "m:" + S.modal : S.open ? "i:" + S.open : S.openStop ? "s:" + S.openStop : "";
   // keep typed text in comment box across live updates
   const draft = $("#cmt-text")?.value;
   const hadFocus = document.activeElement?.id === "cmt-text";
@@ -1147,8 +1654,10 @@ function renderOverlay() {
   const scrim = h("div", { class: "scrim", onclick: (e) => { if (e.target === scrim) closeOverlay(); } });
   const sheet = h("div", { class: "sheet", role: "dialog", "aria-modal": "true" });
   if (S.modal === "trip") tripForm(sheet);
+  else if (S.modal === "stop") stopForm(sheet);
   else if (S.modal) ideaForm(sheet);
-  else ideaSheet(sheet);
+  else if (S.open) ideaSheet(sheet);
+  else stopSheet(sheet);
   scrim.append(sheet); o.append(scrim);
   if (key === lastOverlayKey) {
     if (draft != null && $("#cmt-text")) { $("#cmt-text").value = draft; if (hadFocus) $("#cmt-text").focus({ preventScroll: true }); }
@@ -1172,32 +1681,23 @@ function ideaSheet(sheet) {
   const b = h("div", { class: "sheet-b" });
   const top = h("div", { class: "row" });
   const cat = h("span", { class: "cat" }); cat.innerHTML = ic(CATS[i.category]?.icon || "dots") + esc(CATS[i.category]?.label || "Overig");
-  top.append(cat, h("span", { class: "pill " + i.status }, STATUS[i.status]));
+  top.append(cat, h("span", { class: "pill " + i.status }, statusLabel(i)));
   if (i.author === "claude") top.append(h("span", { class: "pill claude" }, "Idee van Claude"));
   top.append(h("span", { class: "spacer" }), h("span", { class: "small muted" }, `door ${firstName(i.author)} · ${ago(i.createdAt)}`));
   b.append(top);
   if (i.description) b.append(h("p", { style: "margin:0;white-space:pre-wrap" }, i.description));
 
   const kv = h("div", { class: "kv" });
-  kv.innerHTML = `<div><span class="label">Waar</span><b>${esc(i.place || "—")}</b></div>
+  const ist = stopOf(i);
+  kv.innerHTML = `<div><span class="label">Etappe</span><b>${ist ? `<i class="dot" style="background:${stopColor(ist.id)}"></i> ` + esc(ist.place) : "geen"}</b></div>
+    <div><span class="label">Waar</span><b>${esc(i.place || "—")}</b></div>
     <div><span class="label">Kosten p.p.</span><b class="num">${i.cost == 0 && i.cost !== null && i.cost !== "" ? "gratis" : euro(i.cost)}</b></div>
     <div><span class="label">Wanneer</span><b>${i.day ? esc(fmtShort(i.day)) + (i.time ? " · " + esc(i.time) : "") : "nog niet gepland"}</b></div>`;
   if (i.status === "geboekt") kv.insertAdjacentHTML("beforeend", `<div><span class="label">Geboekt door</span><b>${esc(nameOf(i.bookedBy))}</b></div>`);
   b.append(kv);
 
   // vote
-  const vsec = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "Doe jij mee?"), voteCtl(i));
-  const v = votesOf(i);
-  const voters = h("div", { class: "voters", style: "margin-top:10px" });
-  for (const k of ["ja", "mis", "nee"]) if (v[k].length) {
-    const row = h("div", { class: "vrow" }, h("span", { class: "pill " + (k === "ja" ? "geboekt" : k === "mis" ? "voorstel" : "afgevallen"), style: "min-width:86px;justify-content:center" }, VOTE[k]));
-    v[k].forEach(id => row.append(avatar(id)));
-    row.append(h("span", { class: "small muted" }, v[k].map(firstName).join(", ")));
-    voters.append(row);
-  }
-  const notVoted = S.members.map(m => m.id).filter(id => !i.votes?.[id]);
-  if (notVoted.length) voters.append(h("div", { class: "small muted" }, `Nog niet gestemd: ${notVoted.map(firstName).join(", ")}`));
-  vsec.append(voters);
+  const vsec = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, i.category === "verblijf" ? "Wat vind jij ervan?" : "Doe jij mee?"), voteCtl(i), votersEl(i));
   b.append(vsec);
 
   // actions
@@ -1206,11 +1706,12 @@ function ideaSheet(sheet) {
   if (days.length && i.status !== "afgevallen") {
     const sel = h("select", { class: "sel", id: "plan-day", "aria-label": "Plan op dag" });
     sel.append(h("option", { value: "" }, i.day ? "Uit planning halen" : "Plan in op…"));
-    days.forEach(d => sel.append(h("option", { value: d, selected: i.day === d || null }, fmtShort(d))));
-    sel.onchange = () => patchIdea(i.id, { day: sel.value, status: i.status === "geboekt" ? "geboekt" : sel.value ? "gepland" : "voorstel" }, sel.value ? `Ingepland op ${fmtShort(sel.value)}` : "Uit de planning gehaald");
-    act.append(sel);
+    days.forEach(d => { const r = rangeForDay(d); sel.append(h("option", { value: d, selected: i.day === d || null }, fmtShort(d) + (r ? " · " + r.stop.place : ""))); });
+    sel.onchange = () => patchIdea(i.id, { day: sel.value, ...(sel.value ? { stopId: rangeForDay(sel.value)?.id || i.stopId || "" } : {}), status: i.status === "geboekt" ? "geboekt" : sel.value ? "gepland" : "voorstel" }, sel.value ? `Ingepland op ${fmtShort(sel.value)}` : "Uit de planning gehaald");
+    if (i.category !== "verblijf") act.append(sel);
   }
-  if (i.status !== "geboekt" && i.status !== "afgevallen") act.append(h("button", { class: "btn small", type: "button", onclick: () => patchIdea(i.id, { status: "geboekt", bookedBy: S.me, bookedAt: now() }, "Gemarkeerd als geboekt") }, icEl("check"), "Ik heb geboekt"));
+  if (i.category === "verblijf" && ist && ist.stayId !== i.id && i.status !== "afgevallen") act.append(h("button", { class: "btn small primary", type: "button", onclick: () => chooseStay(ist, i) }, icEl("check"), `Kies voor ${ist.place}`));
+  if (i.status !== "geboekt" && i.status !== "afgevallen") act.append(h("button", { class: "btn small", type: "button", onclick: () => i.category === "verblijf" && ist ? chooseStay(ist, i, true) : patchIdea(i.id, { status: "geboekt", bookedBy: S.me, bookedAt: now() }, "Gemarkeerd als geboekt") }, icEl("check"), "Ik heb geboekt"));
   if (i.status === "geboekt") act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => patchIdea(i.id, { status: i.day ? "gepland" : "voorstel", bookedBy: null }, "Boeking teruggezet") }, "Toch niet geboekt"));
   if (i.status !== "afgevallen") act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => patchIdea(i.id, { status: "afgevallen", day: "" }, "Idee valt af") }, "Laat afvallen"));
   else act.append(h("button", { class: "btn small", type: "button", onclick: () => patchIdea(i.id, { status: "voorstel" }, "Weer op het bord") }, "Terug op het bord"));
@@ -1221,7 +1722,11 @@ function ideaSheet(sheet) {
   const L = bookingLinks({ q: i.title, place: i.place });
   const links = h("div", { class: "row" });
   if (i.link) links.append(h("a", { class: "btn small primary", href: i.link, target: "_blank", rel: "noopener" }, icEl("link"), "Open link"));
-  if (i.category === "verblijf") links.append(h("a", { class: "btn small", href: bookingLinks({ place: i.place }).booking, target: "_blank", rel: "noopener" }, "Booking.com"), h("a", { class: "btn small", href: bookingLinks({ place: i.place }).airbnb, target: "_blank", rel: "noopener" }, "Airbnb"));
+  if (i.category === "verblijf") {
+    const ir = ist ? stopRanges().find(r => r.id === ist.id) : null;
+    const BL = bookingLinks({ place: i.place || ist?.place, checkin: ir?.start, checkout: ir?.end, accType: ist?.accType });
+    links.append(h("a", { class: "btn small", href: BL.booking, target: "_blank", rel: "noopener" }, "Booking.com"), h("a", { class: "btn small", href: BL.airbnb, target: "_blank", rel: "noopener" }, "Airbnb"));
+  }
   else if (["activiteit", "natuur", "strand"].includes(i.category)) links.append(h("a", { class: "btn small", href: L.gyg, target: "_blank", rel: "noopener" }, "GetYourGuide"));
   if (i.category === "eten" || i.category === "avond") links.append(h("a", { class: "btn small", href: L.tripadvisor, target: "_blank", rel: "noopener" }, "Tripadvisor"));
   links.append(h("a", { class: "btn small", href: L.maps, target: "_blank", rel: "noopener" }, icEl("map"), "Kaart"));
@@ -1262,9 +1767,10 @@ function ideaSheet(sheet) {
   }
   sheet.append(b);
 }
-const FIELD_LABEL = { title: "titel", place: "plaats", cost: "kosten", day: "dag", time: "tijd", description: "omschrijving", category: "categorie", link: "link" };
-const fmtVal = (k, v) => k === "day" ? (v ? fmtShort(v) : "geen dag") : k === "cost" ? (v === "" || v == null ? "—" : euro(v)) : k === "category" ? (CATS[v]?.label || v) : (v || "—");
-function commentEl(c, idea) {
+const FIELD_LABEL = { title: "titel", place: "plaats", cost: "kosten", day: "dag", time: "tijd", description: "omschrijving", category: "categorie", link: "link", stopId: "etappe", nights: "nachten", accType: "verblijf", note: "toelichting" };
+const fmtVal = (k, v) => k === "day" ? (v ? fmtShort(v) : "geen dag") : k === "cost" ? (v === "" || v == null ? "—" : euro(v)) : k === "category" ? (CATS[v]?.label || v)
+  : k === "stopId" ? (stopById(v)?.place || "geen") : k === "accType" ? (ACC[v] || v) : (v ?? "—") === "" ? "—" : String(v ?? "—");
+function commentEl(c, idea, coll = "ideas") {
   const done = c.kind === "suggestie" && c.resolved;
   const el = h("div", { class: "cmt" + (c.kind === "suggestie" ? " suggestion" : "") + (done ? " done" : "") });
   const body = h("div", { class: "body" });
@@ -1284,9 +1790,16 @@ function commentEl(c, idea) {
     const n = Object.keys(agree).filter(k => agree[k]).length;
     const row = h("div", { class: "row", style: "margin-top:8px" });
     row.append(h("button", { class: "btn small", type: "button", "aria-pressed": String(!!agree[S.me]), onclick: () => write(() => db.doc("comments/" + c.id).update({ agree: { [S.me]: agree[S.me] ? null : true } })) }, `Eens${n ? " · " + n : ""}`));
-    if (idea.author === S.me || !idea.author || idea.author === "claude" || n >= 2) {
+    const owner = coll === "stops" ? idea.createdBy : idea.author;
+    if (owner === S.me || !owner || owner === "claude" || n >= 2) {
       row.append(h("button", { class: "btn small primary", type: "button", onclick: async () => {
-        const ok = await write(async () => { await db.doc("ideas/" + idea.id).update({ ...(c.changes || {}), ...(c.changes?.day ? { status: idea.status === "geboekt" ? "geboekt" : "gepland" } : {}), updatedAt: now(), updatedBy: S.me }); await db.doc("comments/" + c.id).update({ resolved: "accepted", resolvedBy: S.me }); }, "Wijziging doorgevoerd");
+        if (coll === "stops") {
+          if (await changeRoute({ [idea.id]: { ...(c.changes || {}) } }, "Wijziging doorgevoerd")) await write(() => db.doc("comments/" + c.id).update({ resolved: "accepted", resolvedBy: S.me }));
+          return;
+        }
+        const ch = { ...(c.changes || {}) };
+        if (ch.day) ch.stopId = rangeForDay(ch.day)?.id || ch.stopId || idea.stopId || "";
+        await write(async () => { await db.doc("ideas/" + idea.id).update({ ...ch, ...(c.changes?.day ? { status: idea.status === "geboekt" ? "geboekt" : "gepland" } : {}), updatedAt: now(), updatedBy: S.me }); await db.doc("comments/" + c.id).update({ resolved: "accepted", resolvedBy: S.me }); }, "Wijziging doorgevoerd");
       } }, "Doorvoeren"));
       row.append(h("button", { class: "btn small ghost", type: "button", onclick: () => write(() => db.doc("comments/" + c.id).update({ resolved: "rejected", resolvedBy: S.me }), "Suggestie afgewezen") }, "Afwijzen"));
     } else row.append(h("span", { class: "small muted" }, "Bij 2× eens of akkoord van de indiener wordt het doorgevoerd."));
@@ -1303,7 +1816,7 @@ async function askAboutIdea(i) {
   const msg = { role: "assistant", content: "", pending: true }; S.chat.push(msg); S.aiBusy = true; render();
   aiCtl = new AbortController();
   try {
-    await sample(`Een vriendengroep overweegt dit in de Algarve: "${i.title}" (${i.category}, ${i.place || "plaats onbekend"}). ${i.description || ""}\nGroep: ${groupSize()} personen, data ${S.trip?.start || "onbekend"} t/m ${S.trip?.end || "onbekend"}.\nGeef in het Nederlands: 3 praktische tips (beste moment, reserveren, wat meenemen), een realistische prijsindicatie per persoon, en 2 alternatieven in de buurt voor wie niet mee wil. Kort en scanbaar.`,
+    await sample(`Een vriendengroep overweegt dit in Portugal: "${i.title}" (${i.category}, ${i.place || "plaats onbekend"}). ${i.description || ""}\nGroep: ${groupSize()} personen, data ${S.trip?.start || "onbekend"} t/m ${tripEnd() || "onbekend"}${S.stops.length ? `, route: ${routeText()}` : ""}.\nGeef in het Nederlands: 3 praktische tips (beste moment, reserveren, wat meenemen), een realistische prijsindicatie per persoon, en 2 alternatieven in de buurt voor wie niet mee wil. Kort en scanbaar.`,
       { signal: aiCtl.signal, onText: ({ text }) => { msg.content = text; msg.pending = false; updateLastMsg(); } });
   } catch (e) { msg.content = e?.text || msg.content; msg.error = aiErr(e); }
   finally { msg.pending = false; S.aiBusy = false; render(); }
@@ -1312,7 +1825,7 @@ async function askAboutIdea(i) {
 function ideaForm(sheet) {
   const editing = S.modal === "edit" ? S.ideas.find(x => x.id === S.editDraft?.id) : null;
   const asSuggestion = !!(editing && editing.author && editing.author !== S.me && editing.author !== "claude");
-  const d = editing || { category: S.editDraft?.category || "activiteit" };
+  const d = editing || { category: S.editDraft?.category || "activiteit", place: S.editDraft?.place || "", stopId: S.editDraft?.stopId || (stopById(S.stopFilter) ? S.stopFilter : "") };
   sheetHead(sheet, editing ? (asSuggestion ? "Wijziging voorstellen" : "Voorstel bewerken") : "Nieuw voorstel");
   const b = h("div", { class: "sheet-b" });
   if (asSuggestion) b.append(banner(`Dit is het voorstel van ${firstName(editing.author)}. Wat je aanpast wordt een suggestie die de groep kan steunen. Bij akkoord wordt het doorgevoerd.`));
@@ -1331,9 +1844,15 @@ function ideaForm(sheet) {
   f.append(h("div", { class: "two" },
     fld("f-place", "Waar", h("input", { id: "f-place", name: "place", value: d.place || "", placeholder: "Lagos, Sagres, Tavira…" })),
     fld("f-cost", "Kosten per persoon (€)", h("input", { id: "f-cost", name: "cost", type: "number", min: "0", step: "1", inputmode: "numeric", value: d.cost ?? "" }))));
+  if (S.stops.length) {
+    const stopSel = h("select", { id: "f-stop", name: "stopId" }, h("option", { value: "" }, "Nog geen etappe"));
+    const cur = editing ? stopOf(editing)?.id : d.stopId;
+    stopRanges().forEach(r => stopSel.append(h("option", { value: r.id, selected: cur === r.id || null }, `${r.idx + 1}. ${r.stop.place} (${r.nights} n)`)));
+    f.append(fld("f-stop", "Etappe", stopSel));
+  }
   const days = tripDays();
   const daySel = h("select", { id: "f-day", name: "day" }, h("option", { value: "" }, days.length ? "Nog niet" : "Eerst reisdata instellen"));
-  days.forEach(x => daySel.append(h("option", { value: x, selected: d.day === x || null }, fmtShort(x))));
+  days.forEach(x => { const r = rangeForDay(x); daySel.append(h("option", { value: x, selected: d.day === x || null }, fmtShort(x) + (r ? " · " + r.stop.place : ""))); });
   f.append(h("div", { class: "two" }, fld("f-day", "Dag", daySel), fld("f-time", "Tijd", h("input", { id: "f-time", name: "time", type: "time", value: d.time || "" }))));
   f.append(fld("f-link", "Link (Booking.com, Airbnb, GetYourGuide…)", h("input", { id: "f-link", name: "link", type: "url", value: d.link || "", placeholder: "https://" })));
   f.append(fld("f-desc", "Waarom is dit leuk?", h("textarea", { id: "f-desc", name: "description", rows: "3", maxlength: "800" }, d.description || "")));
@@ -1344,12 +1863,13 @@ function ideaForm(sheet) {
     e.preventDefault();
     const fd = new FormData(f);
     const vals = { title: fd.get("title").trim(), category: fd.get("category") || "overig", place: fd.get("place").trim(), cost: fd.get("cost"), day: fd.get("day"), time: fd.get("time"), link: fd.get("link").trim(), description: fd.get("description").trim() };
+    if (S.stops.length) vals.stopId = (vals.day && rangeForDay(vals.day)?.id) || fd.get("stopId") || "";
     if (!vals.title) return;
     if (vals.link && !/^https:\/\//i.test(vals.link)) { toast("Een link moet met https:// beginnen."); return; }
     vals.cost = vals.cost === "" ? null : Number(vals.cost);
     if (!editing) { if (await addIdea(vals)) closeOverlay(); return; }
     const changes = {};
-    for (const k of Object.keys(vals)) { const a = editing[k] ?? (k === "cost" ? null : ""); if (String(a ?? "") !== String(vals[k] ?? "")) changes[k] = vals[k]; }
+    for (const k of Object.keys(vals)) { const a = k === "stopId" ? (stopOf(editing)?.id || "") : editing[k] ?? (k === "cost" ? null : ""); if (String(a ?? "") !== String(vals[k] ?? "")) changes[k] = vals[k]; }
     if (!Object.keys(changes).length) { openIdea(editing.id); return; }
     if (asSuggestion) { if (await addComment(editing.id, (fd.get("why") || "").trim(), "suggestie", changes)) openIdea(editing.id); }
     else {
@@ -1367,11 +1887,14 @@ function tripForm(sheet) {
   const f = h("form", { class: "f" });
   const fld = (id, label, input, hint) => h("div", { class: "field" }, h("label", { for: id }, label), input, hint ? h("span", { class: "small muted" }, hint) : null);
   f.append(fld("t-name", "Naam van de reis", h("input", { id: "t-name", name: "name", maxlength: "60", value: t.name || "", placeholder: "Bijv. Algarve met de jaarclub" })));
+  const hasRoute = S.stops.length > 0;
   f.append(h("div", { class: "two" }, fld("t-start", "Heen", h("input", { id: "t-start", name: "start", type: "date", value: t.start || "", required: true })),
-    fld("t-end", "Terug", h("input", { id: "t-end", name: "end", type: "date", value: t.end || "", required: true }))));
+    hasRoute ? h("div", { class: "field" }, h("span", { class: "small", style: "font-weight:600" }, "Terug"), h("div", { style: "padding:9px 0" }, `Volgt uit de route: ${totalNights()} nachten`))
+      : fld("t-end", "Terug", h("input", { id: "t-end", name: "end", type: "date", value: t.end || "", required: true }))));
   const base = h("select", { id: "t-base", name: "base" });
   ["", "Lagos", "Sagres", "Portimão", "Carvoeiro", "Albufeira", "Vilamoura", "Faro", "Olhão", "Tavira"].forEach(x => base.append(h("option", { value: x, selected: (t.base || "") === x || null }, x || "Nog niet gekozen")));
-  f.append(h("div", { class: "two" }, fld("t-base", "Uitvalsbasis", base), fld("t-from", "Vertrekluchthaven", h("input", { id: "t-from", name: "from", maxlength: "3", value: t.from || "AMS", style: "text-transform:uppercase" }), "IATA-code: AMS, EIN, RTM, BRU…")));
+  f.append(h("div", { class: "two" }, hasRoute ? h("div", { class: "field" }, h("span", { class: "small", style: "font-weight:600" }, "Route"), h("div", { style: "padding:9px 0" }, routeText())) : fld("t-base", "Uitvalsbasis", base, "Of plan meerdere plekken in de Route-tab."),
+    fld("t-from", "Vertrekluchthaven", h("input", { id: "t-from", name: "from", maxlength: "3", value: t.from || "AMS", style: "text-transform:uppercase" }), "IATA-code: AMS, EIN, RTM, BRU…")));
   f.append(h("div", { class: "two" }, fld("t-trav", "Aantal personen", h("input", { id: "t-trav", name: "travelers", type: "number", min: "1", max: "30", value: t.travelers || "" })),
     fld("t-bud", "Budget p.p. voor activiteiten (€)", h("input", { id: "t-bud", name: "budget", type: "number", min: "0", step: "10", value: t.budget || "" }))));
   f.append(fld("t-notes", "Wensen van de groep", h("textarea", { id: "t-notes", name: "notes", rows: "3", placeholder: "Bijv. niet te vroeg op, één keer goed uit eten, iemand is vegetariër" }, t.notes || ""), "Claude houdt hier rekening mee bij voorstellen."));
@@ -1379,11 +1902,188 @@ function tripForm(sheet) {
   f.onsubmit = async (e) => {
     e.preventDefault();
     const fd = new FormData(f);
-    const data = { name: fd.get("name").trim(), start: fd.get("start"), end: fd.get("end"), base: fd.get("base"), from: (fd.get("from") || "AMS").trim().toUpperCase().slice(0, 3),
+    const data = { name: fd.get("name").trim(), start: fd.get("start"), end: hasRoute ? addDays(fd.get("start"), totalNights()) : fd.get("end"), base: hasRoute ? (t.base || "") : fd.get("base"), from: (fd.get("from") || "AMS").trim().toUpperCase().slice(0, 3),
       travelers: fd.get("travelers") ? Number(fd.get("travelers")) : null, budget: fd.get("budget") ? Number(fd.get("budget")) : null, notes: fd.get("notes").trim(), updatedAt: now(), updatedBy: S.me };
     if (data.end < data.start) { toast("De terugreis ligt vóór de heenreis."); return; }
     if ((parseDate(data.end) - parseDate(data.start)) / 86400000 > 30) { toast("Maximaal 31 dagen, anders wordt de planning onoverzichtelijk."); return; }
     if (await write(() => db.doc("trip/main").set(data), "Reis opgeslagen")) closeOverlay();
+  };
+  b.append(f); sheet.append(b);
+}
+
+function votersEl(obj) {
+  const v = votesOf(obj);
+  const voters = h("div", { class: "voters", style: "margin-top:10px" });
+  for (const k of ["ja", "mis", "nee"]) if (v[k].length) {
+    const row = h("div", { class: "vrow" }, h("span", { class: "pill " + (k === "ja" ? "geboekt" : k === "mis" ? "voorstel" : "afgevallen"), style: "min-width:86px;justify-content:center" }, VOTE[k]));
+    v[k].forEach(id => row.append(avatar(id)));
+    row.append(h("span", { class: "small muted" }, v[k].map(firstName).join(", ")));
+    voters.append(row);
+  }
+  const notVoted = S.members.map(m => m.id).filter(id => !obj.votes?.[id]);
+  if (notVoted.length) voters.append(h("div", { class: "small muted" }, `Nog niet gestemd: ${notVoted.map(firstName).join(", ")}`));
+  return voters;
+}
+function stopSheet(sheet) {
+  const ranges = stopRanges();
+  const r = ranges.find(x => x.id === S.openStop);
+  if (!r) { sheetHead(sheet, "Niet gevonden"); sheet.append(h("div", { class: "sheet-b muted" }, "Deze etappe is van de route gehaald.")); return; }
+  const st = r.stop, f = stopFunnel(r), locked = st.status === "vast";
+  sheetHead(sheet, st.place);
+  const b = h("div", { class: "sheet-b" });
+  const top = h("div", { class: "row" }, h("i", { class: "dot", style: `background:${r.color};width:12px;height:12px` }), h("span", { class: "small" }, `Etappe ${r.idx + 1} van ${ranges.length}`));
+  const pill = h("span", { class: "pill " + (locked ? "gepland" : "voorstel") }); pill.innerHTML = (locked ? ic("lock") : "") + (locked ? "Vastgezet" : "Voorstel");
+  top.append(pill, h("span", { class: "spacer" }), h("span", { class: "small muted" }, `door ${firstName(st.createdBy)} · ${ago(st.createdAt)}`));
+  b.append(top);
+  const prev = r.idx > 0 ? ranges[r.idx - 1].stop : null;
+  const lg = prev ? legInfo(prev.place, st.place) : null;
+  const kv = h("div", { class: "kv" });
+  kv.innerHTML = `<div><span class="label">Data</span><b>${r.start ? esc(fmtShort(r.start) + " → " + fmtShort(r.end)) : "kies een startdatum"}</b></div>
+    <div><span class="label">Verblijf</span><b>${esc(ACC[st.accType] || "Nog open")}</b></div>
+    <div><span class="label">${prev ? "Vanaf " + esc(prev.place) : "Aankomst"}</span><b>${prev ? (lg ? `± ${esc(fmtHrs(lg.hrs))} · ${lg.km} km` : "reistijd onbekend") : esc("via " + AIRPORT_NAME[nearestAirport(st.place)])}</b></div>`;
+  b.append(kv);
+  if (st.note) b.append(h("p", { style: "margin:0;white-space:pre-wrap" }, st.note));
+
+  // 1 · plek & nachten
+  const s1 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "1 · Plek en nachten: akkoord?"));
+  const r1 = h("div", { class: "row" }, voteCtl(st, false, "stops"), nightsCtl(st));
+  s1.append(r1, votersEl(st));
+  const act = h("div", { class: "row", style: "margin-top:10px" });
+  if (!locked) act.append(h("button", { class: "btn small primary", type: "button", onclick: () => write(() => db.doc("stops/" + st.id).update({ status: "vast", lockedBy: S.me, lockedAt: now() }), `${st.place} staat vast`) }, icEl("lock"), "Zet vast"));
+  else act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => write(() => db.doc("stops/" + st.id).update({ status: "voorstel" }), `${st.place} staat weer open`) }, "Weer openzetten"));
+  act.append(h("button", { class: "btn small ghost", type: "button", onclick: () => openModal("stop", { id: st.id }) }, icEl("edit"), locked ? "Stel wijziging voor" : "Bewerk etappe"));
+  s1.append(act);
+  if (locked) s1.append(h("div", { class: "small muted", style: "margin-top:6px" }, "Vastgezet: nachten en plek veranderen nu via een wijzigingsvoorstel, zodat niemand per ongeluk de planning omgooit."));
+  b.append(s1);
+
+  // 2 · verblijf
+  const BL = bookingLinks({ place: st.place, checkin: r.start, checkout: r.end, accType: st.accType });
+  const s2 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, `2 · Verblijf${r.start ? ` (${fmtShort(r.start)} → ${fmtShort(r.end)})` : ""}`));
+  const stack = h("div", { class: "stack" });
+  if (!f.stays.length) stack.append(h("div", { class: "small muted" }, `Nog geen opties. Zoek op Booking.com of Airbnb (data en groep staan al ingevuld) en plak de link als voorstel.`));
+  f.stays.forEach(i => {
+    const chosen = f.chosen?.id === i.id;
+    const row = h("div", { class: "stay-row" + (chosen ? " chosen" : "") });
+    row.append(h("div", { class: "t" }, h("button", { class: "linkish", type: "button", onclick: () => openIdea(i.id) }, i.title),
+      h("span", { class: "small muted" }, [i.cost ? euro(i.cost) + " p.p." : null, chosen ? (i.status === "geboekt" ? `geboekt door ${firstName(i.bookedBy)}` : "gekozen, nog boeken") : null].filter(Boolean).join(" · ") || "voorstel")));
+    row.append(voteCtl(i, true));
+    if (i.link) row.append(h("a", { class: "btn small ghost", href: i.link, target: "_blank", rel: "noopener" }, icEl("link")));
+    if (!chosen) row.append(h("button", { class: "btn small", type: "button", onclick: () => chooseStay(st, i) }, "Kies"));
+    else if (i.status !== "geboekt") row.append(h("button", { class: "btn small primary", type: "button", onclick: () => chooseStay(st, i, true) }, icEl("check"), "Geboekt"));
+    stack.append(row);
+  });
+  s2.append(stack, h("div", { class: "row", style: "margin-top:10px" },
+    h("button", { class: "btn small primary", type: "button", onclick: () => openModal("new", { category: "verblijf", stopId: st.id, place: st.place }) }, icEl("plus"), "Verblijf voorstellen"),
+    h("a", { class: "btn small", href: BL.booking, target: "_blank", rel: "noopener" }, "Booking.com"),
+    h("a", { class: "btn small", href: BL.airbnb, target: "_blank", rel: "noopener" }, "Airbnb")));
+  b.append(s2);
+
+  // 3 · activiteiten
+  const s3 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, `3 · Activiteiten (${f.acts.length})`));
+  const al = h("div", { class: "stack" });
+  if (!f.acts.length) al.append(h("div", { class: "small muted" }, `Nog niets voor ${st.place}. Voeg een idee toe of kijk bij Inspiratie.`));
+  f.acts.slice(0, 6).forEach(i => {
+    const m = h("button", { class: "mini", type: "button", onclick: () => openIdea(i.id) }, icEl(CATS[i.category]?.icon || "dots"), h("b", {}, i.title), tally(i));
+    al.append(m);
+  });
+  s3.append(al, h("div", { class: "row", style: "margin-top:10px" },
+    h("button", { class: "btn small primary", type: "button", onclick: () => openModal("new", { stopId: st.id, place: st.place }) }, icEl("plus"), "Idee toevoegen"),
+    h("button", { class: "btn small", type: "button", onclick: () => { S.stopFilter = st.id; closeOverlay(); setTab("ideas"); } }, `Alle ideeën voor ${st.place}`),
+    h("a", { class: "btn small ghost", href: bookingLinks({ q: st.place, place: st.place }).gyg, target: "_blank", rel: "noopener" }, "GetYourGuide")));
+  b.append(s3);
+
+  // 4 · dagen
+  if (r.start) {
+    const s4 = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, `4 · Dagplanning (${f.plannedDays} / ${r.nights})`));
+    const dl = h("div", {});
+    for (let k = 0; k < r.nights; k++) {
+      const d = addDays(r.start, k);
+      const items = S.ideas.filter(i => i.day === d && i.status !== "afgevallen" && i.category !== "verblijf").sort((a, c) => (a.time || "99").localeCompare(c.time || "99"));
+      dl.append(h("div", { class: "dayline" }, h("span", { class: "d" }, fmtShort(d)), h("span", { class: items.length ? "" : "muted" }, items.length ? items.map(i => (i.time ? i.time + " " : "") + i.title).join(" · ") : (k === 0 && r.idx > 0 ? "reisdag, nog vrij" : "nog vrij"))));
+    }
+    s4.append(dl, h("div", { class: "row", style: "margin-top:10px" }, h("button", { class: "btn small", type: "button", onclick: () => { S.planFocus = st.id; closeOverlay(); setTab("plan"); } }, icEl("cal"), "Naar de planning")));
+    b.append(s4);
+  }
+
+  // reacties
+  const thr = h("section", {}, h("div", { class: "label", style: "margin-bottom:8px" }, "Reacties & suggesties"));
+  const list = h("div", { class: "thread" });
+  const cs = commentsFor(st.id);
+  if (!cs.length) list.append(h("div", { class: "small muted" }, "Liever 2 nachten? Of toch Lagos in plaats van Albufeira? Zeg het hier."));
+  cs.forEach(c => list.append(commentEl(c, st, "stops")));
+  thr.append(list);
+  const form = h("form", { class: "f", style: "margin-top:10px", onsubmit: async (e) => {
+    e.preventDefault(); const ta = $("#cmt-text"); const t = ta.value.trim(); if (!t) return;
+    if (await addComment(st.id, t, "reactie", null, "stops")) ta.value = "";
+  } });
+  form.append(h("div", { class: "field" }, h("label", { for: "cmt-text" }, "Reageer"), h("textarea", { id: "cmt-text", rows: "2", placeholder: "Bijv. ‘Na 2 nachten Lissabon heb ik het wel gezien’" })));
+  form.append(h("div", { class: "row" }, h("button", { class: "btn primary small", type: "submit" }, "Plaats reactie"),
+    h("button", { class: "btn small", type: "button", onclick: () => openModal("stop", { id: st.id, suggest: true }) }, "Stel een wijziging voor")));
+  thr.append(form);
+  b.append(thr);
+
+  if (!locked) {
+    const del = h("div", {});
+    const btn = h("button", { class: "btn small ghost", type: "button", style: "color:var(--no)", onclick: () => {
+      del.innerHTML = "";
+      del.append(h("div", { class: "confirm" }, `${st.place} van de route halen? Ingeplande ideeën gaan terug naar het bord.`, h("span", { class: "spacer" }),
+        h("button", { class: "btn small", type: "button", onclick: () => renderOverlay() }, "Annuleer"),
+        h("button", { class: "btn small primary", type: "button", style: "background:var(--no);border-color:var(--no)", onclick: async () => {
+          if (await changeRoute({ [st.id]: { __delete: true } }, `${st.place} van de route gehaald`)) closeOverlay();
+        } }, "Haal weg")));
+    } });
+    btn.innerHTML = ic("trash") + "Etappe verwijderen";
+    del.append(btn); b.append(del);
+  }
+  sheet.append(b);
+}
+function stopForm(sheet) {
+  const editing = stopById(S.editDraft?.id);
+  const asSuggestion = !!(editing && (editing.status === "vast" || S.editDraft?.suggest));
+  sheetHead(sheet, editing ? (asSuggestion ? "Wijziging voorstellen" : "Etappe bewerken") : "Etappe toevoegen");
+  const b = h("div", { class: "sheet-b" });
+  if (asSuggestion) b.append(banner(editing.status === "vast" ? "Deze etappe staat vast. Je wijziging wordt een suggestie. Met akkoord van de indiener of 2 anderen wordt hij doorgevoerd, en ingeplande ideeën schuiven mee." : "Je wijziging wordt een suggestie waar de groep op kan reageren."));
+  else if (!editing) b.append(h("p", { class: "muted", style: "margin:0" }, "Begin grof: de plek waar jullie slapen en hoeveel nachten. Het verblijf zelf zoeken jullie daarna samen uit."));
+  const d = editing || { nights: 3, accType: "open" };
+  const f = h("form", { class: "f" });
+  const fld = (id, label, input, hint) => h("div", { class: "field" }, h("label", { for: id }, label), input, hint ? h("span", { class: "small muted" }, hint) : null);
+  const dl = h("datalist", { id: "places-dl" }); Object.keys(PLACES).forEach(k => dl.append(h("option", { value: k })));
+  f.append(fld("s-place", "Plek (uitvalsbasis)", h("input", { id: "s-place", name: "place", required: true, maxlength: "60", list: "places-dl", value: d.place || "", placeholder: "Lissabon, Albufeira, Lagos…" }), "Bekende plaatsen krijgen automatisch reistijden en vliegveld."), dl);
+  f.append(h("div", { class: "two" },
+    fld("s-nights", "Nachten", h("input", { id: "s-nights", name: "nights", type: "number", min: "1", max: "30", required: true, inputmode: "numeric", value: d.nights || 3 })),
+    (() => { const sel = h("select", { id: "s-acc", name: "accType" }); Object.entries(ACC).forEach(([k, l]) => sel.append(h("option", { value: k, selected: (d.accType || "open") === k || null }, l))); return fld("s-acc", "Soort verblijf", sel); })()));
+  if (!editing && S.stops.length) {
+    const pos = h("select", { id: "s-pos", name: "pos" });
+    const rs = stopRanges();
+    pos.append(h("option", { value: "end" }, "Aan het eind"));
+    pos.append(h("option", { value: "start" }, `Als eerste (vóór ${rs[0].stop.place})`));
+    rs.slice(0, -1).forEach((r, k) => pos.append(h("option", { value: "after:" + k }, `Na ${r.stop.place}`)));
+    f.append(fld("s-pos", "Waar in de route?", pos));
+  }
+  f.append(fld("s-note", "Waarom hier?", h("textarea", { id: "s-note", name: "note", rows: "2", maxlength: "400", placeholder: "Bijv. stad, cultuur en uitgaan voordat we gaan stranden" }, d.note || "")));
+  if (asSuggestion) f.append(fld("s-why", "Toelichting voor de groep", h("input", { id: "s-why", name: "why", placeholder: "Bijv. 2 nachten is genoeg, dan hebben we meer strand" })));
+  f.append(h("div", { class: "row" }, h("button", { class: "btn primary", type: "submit" }, editing ? (asSuggestion ? "Suggestie plaatsen" : "Opslaan") : "Op de route zetten"),
+    h("button", { class: "btn ghost", type: "button", onclick: () => editing ? openStop(editing.id) : closeOverlay() }, "Annuleer")));
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(f);
+    const typed = fd.get("place").trim();
+    const vals = { place: placeInfo(typed)?.key && norm(placeInfo(typed).key) === norm(typed) ? placeInfo(typed).key : typed, nights: Math.max(1, Math.min(30, Number(fd.get("nights")) || 1)), accType: fd.get("accType") || "open", note: fd.get("note").trim() };
+    if (!vals.place) return;
+    if (!editing) {
+      const rs = stopRanges(); const pos = fd.get("pos") || "end";
+      let order;
+      if (!rs.length || pos === "end") order = maxOrder() + 1;
+      else if (pos === "start") order = (rs[0].stop.order ?? 0) - 1;
+      else { const k = Number(pos.split(":")[1]); order = ((rs[k].stop.order ?? 0) + (rs[k + 1].stop.order ?? 0)) / 2; }
+      if (await changeRoute({}, `${vals.place} staat op de route`, [newStop(vals, order)])) closeOverlay();
+      return;
+    }
+    const changes = {};
+    for (const k of Object.keys(vals)) if (String(editing[k] ?? "") !== String(vals[k] ?? "")) changes[k] = vals[k];
+    if (!Object.keys(changes).length) { openStop(editing.id); return; }
+    if (asSuggestion) { if (await addComment(editing.id, (fd.get("why") || "").trim(), "suggestie", changes, "stops")) openStop(editing.id); }
+    else if (await changeRoute({ [editing.id]: changes }, "Etappe bijgewerkt")) openStop(editing.id);
   };
   b.append(f); sheet.append(b);
 }
@@ -1397,6 +2097,7 @@ function refreshProfiles() {
     const ids = new Set([...S.members.map(m => m.id), ...S.peers]);
     S.ideas.forEach(i => { if (i.author && i.author !== "claude") ids.add(i.author); if (i.bookedBy) ids.add(i.bookedBy); Object.keys(i.votes || {}).forEach(k => ids.add(k)); });
     S.comments.forEach(c => c.author && ids.add(c.author));
+    S.stops.forEach(st => { if (st.createdBy && st.createdBy !== "claude") ids.add(st.createdBy); if (st.lockedBy) ids.add(st.lockedBy); Object.keys(st.votes || {}).forEach(k => ids.add(k)); });
     if (S.me) ids.add(S.me);
     const list = [...ids].filter(Boolean);
     if (!list.length) return;
@@ -1428,6 +2129,7 @@ render();
   db.collection("ideas").onSnapshot(snap => {
     S.ideas = snap.docs.map(d => ({ id: d.id, ...d.data() })); S.ready.db = true; scheduleRender();
   }, onErr);
+  db.collection("stops").onSnapshot(snap => { S.stops = snap.docs.map(d => ({ id: d.id, ...d.data() })); scheduleRender(); }, onErr);
   db.collection("comments").onSnapshot(snap => { S.comments = snap.docs.map(d => ({ id: d.id, ...d.data() })); scheduleRender(); }, onErr);
   db.collection("members").onSnapshot(snap => { S.members = snap.docs.map(d => ({ id: d.id, ...d.data() })); scheduleRender(); ensureMember(); }, onErr);
 
